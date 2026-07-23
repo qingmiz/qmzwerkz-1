@@ -29,6 +29,7 @@ export default function AdminMarketplace() {
 
   const [version, setVersion] = useState('1.0.0');
   const [changelog, setChangelog] = useState('');
+  const [tags, setTags] = useState('');
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState('');
@@ -79,6 +80,10 @@ export default function AdminMarketplace() {
 
       const { error } = await supabase.from('products').insert([
         {
+          tags: tags
+             .split(',')
+             .map((tag) => tag.trim())
+             .filter(Boolean),
           name,
           platform,
           category,
@@ -293,6 +298,36 @@ export default function AdminMarketplace() {
             resize: 'vertical',
           }}
         />
+
+        <div>
+         <label
+           style={{
+             display: 'block',
+             marginBottom: 8,
+             fontWeight: 700,
+           }}
+         >
+           Tags
+         </label>
+
+       <input
+        type="text"
+        placeholder="female, face, realistic, fivem"
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        style={inputStyle}
+      />
+
+       <small
+         style={{
+           color: '#777',
+           marginTop: 6,
+           display: 'block',
+         }}
+       >
+         Separate tags with commas.
+       </small>
+     </div>
 
         <div
           style={{
