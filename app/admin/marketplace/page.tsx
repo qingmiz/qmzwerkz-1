@@ -10,6 +10,7 @@ const supabase = createClient(
 
 export default function AdminMarketplace() {
   const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
   const [platform, setPlatform] = useState('FiveM');
   const [category, setCategory] = useState('Scripts');
   const [subcategory, setSubcategory] = useState('');
@@ -78,7 +79,7 @@ export default function AdminMarketplace() {
           .getPublicUrl(zipName).data.publicUrl;
       }
 
-      const { error } = await supabase.from('products').insert([
+      const { error } = await supabase.from('products').insert([slug,
         {
           tags: tags
              .split(',')
@@ -192,7 +193,25 @@ export default function AdminMarketplace() {
         <input
           placeholder="Product Name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+             const value = e.target.value;
+
+             setName(value);
+
+             setSlug( 
+              value
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')  
+            );
+          }}
+          style={inputStyle}
+        />
+        <input
+          placeholder="Product Slug"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
           style={inputStyle}
         />
 
