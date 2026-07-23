@@ -1,0 +1,143 @@
+'use client';
+
+import { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export default function AdminLogin() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function login(e: React.FormEvent) {
+    e.preventDefault();
+
+    setLoading(true);
+    setError('');
+
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const { data: admin } = await supabase
+      .from('admin_users')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    if (!admin) {
+      await supabase.auth.signOut();
+
+      setError('You are not an admin.');
+
+      return;
+    }
+
+    router.push('/admin/dashboard');
+  }
+
+  return (
+    <div
+      style={{
+        background: '#000',
+        color: '#fff',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <form
+        onSubmit={login}
+        style={{
+          background: '#111',
+          padding: 40,
+          borderRadius: 12,
+          width: 420,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          border: '1px solid #222',
+        }}
+      >
+        <h1
+          style={{
+            textAlign: 'center',
+            fontSize: 30,
+            fontWeight: 800,
+          }}
+        >
+          QMZWERKZ Admin
+        </h1>
+
+        <input
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={inputStyle}
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={inputStyle}
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          style={buttonStyle}
+        >
+          {loading ? 'Signing In...' : 'Login'}
+        </button>
+
+        {error && (
+          <div
+            style={{
+              color: '#ef4444',
+              textAlign: 'center',
+            }}
+          >
+            {error}
+          </div>
+        )}
+      </form>
+    </div>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  padding: '14px',
+  background: '#161616',
+  border: '1px solid #333',
+  borderRadius: 8,
+  color: '#fff',
+};
+
+const buttonStyle: React.CSSProperties = {
+  padding: '15px',
+  background: '#ec4899',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 8,
+  cursor: 'pointer',
+  fontWeight: 700,
+};
