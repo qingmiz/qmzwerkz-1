@@ -1,130 +1,100 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import Link from "next/link";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-export default function ProductsAdmin() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  async function loadProducts() {
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (!error) {
-      setProducts(data || []);
-    }
-
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  async function deleteProduct(id: number) {
-    if (!confirm('Delete this product?')) return;
-
-    await supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
-
-    loadProducts();
-  }
-
+export default function ProductsPage() {
   return (
-    <div
+    <main
       style={{
-        background: '#000',
-        minHeight: '100vh',
-        color: '#fff',
-        padding: 40,
+        minHeight: "100vh",
+        background: "#090909",
+        color: "#fff",
+        padding: "40px",
       }}
     >
-      <h1
+      <div
         style={{
-          fontSize: 34,
-          marginBottom: 30,
-          fontWeight: 800,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "30px",
         }}
       >
-        Product Manager
-      </h1>
+        <div>
+          <h1 style={{ fontSize: "34px", fontWeight: "bold" }}>
+            Products
+          </h1>
 
-      {loading && <p>Loading...</p>}
+          <p style={{ color: "#888", marginTop: "8px" }}>
+            Manage everything sold on QMZWERKZ.
+          </p>
+        </div>
 
-      {!loading &&
-        products.map((product) => (
-          <div
-            key={product.id}
-            style={{
-              background: '#111',
-              border: '1px solid #222',
-              borderRadius: 12,
-              padding: 20,
-              marginBottom: 20,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <div>
-              <h2>{product.name}</h2>
+        <Link
+          href="/admin/marketplace"
+          style={{
+            background: "#ec4899",
+            color: "#fff",
+            textDecoration: "none",
+            padding: "12px 20px",
+            borderRadius: "10px",
+            fontWeight: "bold",
+          }}
+        >
+          + New Product
+        </Link>
+      </div>
 
-              <p>{product.platform}</p>
-
-              <p>{product.category}</p>
-
-              <p>${product.price}</p>
-
-              <p>Status: {product.status}</p>
-            </div>
-
-            <div
+      <div
+        style={{
+          background: "#151515",
+          border: "1px solid #2b2b2b",
+          borderRadius: "14px",
+          overflow: "hidden",
+        }}
+      >
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+          }}
+        >
+          <thead>
+            <tr
               style={{
-                display: 'flex',
-                gap: 10,
+                background: "#1d1d1d",
               }}
             >
-              <button
-                style={{
-                  padding: '10px 16px',
-                  background: '#2563eb',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                }}
-              >
-                Edit
-              </button>
+              <th style={th}>Product</th>
+              <th style={th}>Platform</th>
+              <th style={th}>Category</th>
+              <th style={th}>Price</th>
+              <th style={th}>Status</th>
+            </tr>
+          </thead>
 
-              <button
-                onClick={() => deleteProduct(product.id)}
-                style={{
-                  padding: '10px 16px',
-                  background: '#dc2626',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-    </div>
+          <tbody>
+            <tr>
+              <td style={td}>No products yet.</td>
+              <td style={td}>-</td>
+              <td style={td}>-</td>
+              <td style={td}>-</td>
+              <td style={td}>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
   );
 }
+
+const th: React.CSSProperties = {
+  textAlign: "left",
+  padding: "16px",
+  color: "#999",
+};
+
+const td: React.CSSProperties = {
+  padding: "16px",
+  borderTop: "1px solid #2b2b2b",
+};

@@ -1,6 +1,6 @@
 "use client";
 
-export default function CustomersPage() {
+export default function PromoCodesPage() {
   return (
     <main
       style={{
@@ -17,7 +17,7 @@ export default function CustomersPage() {
           marginBottom: "10px",
         }}
       >
-        Customers
+        Promo Codes
       </h1>
 
       <p
@@ -26,8 +26,23 @@ export default function CustomersPage() {
           marginBottom: "30px",
         }}
       >
-        Manage your marketplace customers.
+        Create and manage discounts for your marketplace.
       </p>
+
+      <button
+        style={{
+          background: "#ec4899",
+          color: "#fff",
+          border: "none",
+          padding: "12px 20px",
+          borderRadius: "10px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          marginBottom: "25px",
+        }}
+      >
+        + Create Promo Code
+      </button>
 
       <div
         style={{
@@ -45,17 +60,17 @@ export default function CustomersPage() {
         >
           <thead>
             <tr style={{ background: "#1d1d1d" }}>
-              <th style={th}>Customer</th>
-              <th style={th}>Email</th>
-              <th style={th}>Orders</th>
-              <th style={th}>Spent</th>
-              <th style={th}>Joined</th>
+              <th style={th}>Code</th>
+              <th style={th}>Discount</th>
+              <th style={th}>Uses</th>
+              <th style={th}>Expires</th>
+              <th style={th}>Status</th>
             </tr>
           </thead>
 
           <tbody>
             <tr>
-              <td style={td}>No customers yet.</td>
+              <td style={td}>No promo codes yet.</td>
               <td style={td}>-</td>
               <td style={td}>-</td>
               <td style={td}>-</td>
