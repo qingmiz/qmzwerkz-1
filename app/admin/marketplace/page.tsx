@@ -3,171 +3,347 @@
 import React, { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://hmxlzqirdfghlihgyynj.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhteGx6cWlyZGZnaGxpaGd5eW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjA1MDMsImV4cCI6MjEwMDI5NjUwM30.p5esFUDhbY8NXAYPBoY3TRBZmYwjjTCZ--IOh9SiNXg';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function AdminMarketplace() {
   const [name, setName] = useState('');
+  const [platform, setPlatform] = useState('FiveM');
   const [category, setCategory] = useState('Scripts');
+  const [subcategory, setSubcategory] = useState('');
+
   const [description, setDescription] = useState('');
+  const [fullDescription, setFullDescription] = useState('');
+
   const [price, setPrice] = useState('');
-  
+
+  const [productStatus, setProductStatus] = useState('published');
+
+  const [featured, setFeatured] = useState(false);
+  const [bestseller, setBestseller] = useState(false);
+  const [newRelease, setNewRelease] = useState(false);
+  const [freeProduct, setFreeProduct] = useState(false);
+
+  const [version, setVersion] = useState('1.0.0');
+  const [changelog, setChangelog] = useState('');
+
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [zipFile, setZipFile] = useState<File | null>(null);
-  
-  const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleUploadAndPublish = async (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('');
+
+  const handleUploadAndPublish = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
+
     setLoading(true);
-    setStatus('Uploading assets to Supabase storage...');
+    setStatus('Uploading assets...');
 
     try {
       let coverImageUrl = '';
       let zipFileUrl = '';
 
-      // 1. Upload Cover Image if selected
       if (coverFile) {
         const fileName = `${Date.now()}-${coverFile.name}`;
-        const { error: coverError } = await supabase.storage
+
+        const { error } = await supabase.storage
           .from('product-images')
           .upload(fileName, coverFile);
 
-        if (coverError) throw coverError;
+        if (error) throw error;
 
-        const { data: publicURLData } = supabase.storage
+        coverImageUrl = supabase.storage
           .from('product-images')
-          .getPublicUrl(fileName);
-          
-        coverImageUrl = publicURLData.publicUrl;
+          .getPublicUrl(fileName).data.publicUrl;
       }
 
-      // 2. Upload Asset Zip file if selected
       if (zipFile) {
         const zipName = `${Date.now()}-${zipFile.name}`;
-        const { error: zipError } = await supabase.storage
+
+        const { error } = await supabase.storage
           .from('product-files')
           .upload(zipName, zipFile);
 
-        if (zipError) throw zipError;
+        if (error) throw error;
 
-        const { data: publicZipData } = supabase.storage
+        zipFileUrl = supabase.storage
           .from('product-files')
-          .getPublicUrl(zipName);
-          
-        zipFileUrl = publicZipData.publicUrl;
+          .getPublicUrl(zipName).data.publicUrl;
       }
 
-      setStatus('Saving product record...');
-
-      // 3. Insert product row into Supabase
-      const { error: dbError } = await supabase.from('products').insert([
+      const { error } = await supabase.from('products').insert([
         {
           name,
+          platform,
           category,
+          subcategory,
+          status: productStatus,
+
           short_description: description,
+          description: fullDescription,
+
           price: parseFloat(price) || 0,
+
+          featured,
+          bestseller,
+          new_release: newRelease,
+          free_product: freeProduct,
+
+          version,
+          changelog,
+
           cover_image: coverImageUrl,
           zip_file: zipFileUrl,
         },
       ]);
 
-      if (dbError) throw dbError;
+      if (error) throw error;
+      setStatus('Product published successfully!');
 
-      setStatus('Success! Product published to QMZWERKZ storefront.');
       setName('');
+      setPlatform('FiveM');
+      setCategory('Scripts');
+      setSubcategory('');
       setDescription('');
+      setFullDescription('');
       setPrice('');
+      setVersion('1.0.0');
+      setChangelog('');
+
+      setFeatured(false);
+      setBestseller(false);
+      setNewRelease(false);
+      setFreeProduct(false);
+
       setCoverFile(null);
       setZipFile(null);
     } catch (err: any) {
-      setStatus(`Error: ${err.message}`);
+      setStatus(err.message ?? 'Something went wrong.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '32px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '20px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px 0', color: '#fff' }}>QMZ WERKZ // Admin Asset Manager</h1>
-        <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>Upload preview work, bundle packages, and release directly to store.</p>
-      </header>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#000',
+        color: '#fff',
+        padding: '40px',
+        maxWidth: '1000px',
+        margin: '0 auto',
+      }}
+    >
+      <h1
+        style={{
+          fontSize: '32px',
+          fontWeight: 800,
+          marginBottom: '8px',
+        }}
+      >
+        QMZWERKZ Admin
+      </h1>
 
-      <form onSubmit={handleUploadAndPublish} style={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#ccc' }}>Asset Name</label>
+      <p
+        style={{
+          color: '#888',
+          marginBottom: '30px',
+        }}
+      >
+        Publish products directly to your marketplace.
+      </p>
+
+      <form
+        onSubmit={handleUploadAndPublish}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          background: '#111',
+          padding: '25px',
+          borderRadius: '12px',
+          border: '1px solid #222',
+        }}
+      >
+        <input
+          placeholder="Product Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={inputStyle}
+        />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3,1fr)',
+            gap: '15px',
+          }}
+        >
+          <select
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value)}
+            style={inputStyle}
+          >
+            <option>FiveM</option>
+            <option>IMVU</option>
+            <option>Second Life</option>
+            <option>Roblox</option>
+          </select>
+
           <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g., QMZ Luxury Face Pack Vol. 1"
-            style={{ width: '100%', padding: '12px', background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+            placeholder="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            style={inputStyle}
+          />
+
+          <input
+            placeholder="Subcategory"
+            value={subcategory}
+            onChange={(e) => setSubcategory(e.target.value)}
+            style={inputStyle}
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#ccc' }}>Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              style={{ width: '100%', padding: '12px', background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
-            >
-              <option value="Scripts">Scripts</option>
-              <option value="Clothing Packs">Clothing Packs</option>
-              <option value="Face Packs">Face Packs</option>
-              <option value="Weapons">Weapons</option>
-              <option value="Maps & MLOs">Maps & MLOs</option>
-              <option value="Vehicles">Vehicles</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#ccc' }}>Price ($ USD)</label>
+        <input
+          placeholder="Price"
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          style={inputStyle}
+        />
+
+        <input
+          placeholder="Short Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          style={inputStyle}
+        />
+
+        <textarea
+          placeholder="Full Description"
+          value={fullDescription}
+          onChange={(e) => setFullDescription(e.target.value)}
+          style={{
+            ...inputStyle,
+            minHeight: 150,
+            resize: 'vertical',
+          }}
+        />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '15px',
+          }}
+        >
+          <input
+            placeholder="Version"
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+            style={inputStyle}
+          />
+
+          <select
+            value={productStatus}
+            onChange={(e) => setProductStatus(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="coming_soon">Coming Soon</option>
+          </select>
+        </div>
+
+        <textarea
+          placeholder="Changelog"
+          value={changelog}
+          onChange={(e) => setChangelog(e.target.value)}
+          style={{
+            ...inputStyle,
+            minHeight: 120,
+            resize: 'vertical',
+          }}
+        />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2,1fr)',
+            gap: '15px',
+          }}
+        >
+          <label style={checkboxStyle}>
             <input
-              type="number"
-              step="0.01"
-              required
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="19.99"
-              style={{ width: '100%', padding: '12px', background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              type="checkbox"
+              checked={featured}
+              onChange={(e) => setFeatured(e.target.checked)}
             />
-          </div>
+            Featured
+          </label>
+
+          <label style={checkboxStyle}>
+            <input
+              type="checkbox"
+              checked={bestseller}
+              onChange={(e) => setBestseller(e.target.checked)}
+            />
+            Best Seller
+          </label>
+
+          <label style={checkboxStyle}>
+            <input
+              type="checkbox"
+              checked={newRelease}
+              onChange={(e) => setNewRelease(e.target.checked)}
+            />
+            New Release
+          </label>
+
+          <label style={checkboxStyle}>
+            <input
+              type="checkbox"
+              checked={freeProduct}
+              onChange={(e) => setFreeProduct(e.target.checked)}
+            />
+            Free Product
+          </label>
         </div>
 
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#ccc' }}>Short Description</label>
-          <input
-            type="text"
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optimized 4K FiveM asset package..."
-            style={{ width: '100%', padding: '12px', background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '15px',
+          }}
+        >
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#ccc' }}>Display Image (.png / .jpg)</label>
+            <p style={{ marginBottom: 8 }}>Cover Image</p>
+
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-              style={{ width: '100%', padding: '10px', background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff', fontSize: '13px' }}
+              onChange={(e) =>
+                setCoverFile(e.target.files?.[0] || null)
+              }
             />
           </div>
+
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#ccc' }}>Deliverable Asset Package (.zip)</label>
+            <p style={{ marginBottom: 8 }}>ZIP File</p>
+
             <input
               type="file"
               accept=".zip,.rar,.7z"
-              onChange={(e) => setZipFile(e.target.files?.[0] || null)}
-              style={{ width: '100%', padding: '10px', background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff', fontSize: '13px' }}
+              onChange={(e) =>
+                setZipFile(e.target.files?.[0] || null)
+              }
             />
           </div>
         </div>
@@ -175,17 +351,55 @@ export default function AdminMarketplace() {
         <button
           type="submit"
           disabled={loading}
-          style={{ background: '#ec4899', color: '#fff', padding: '14px', borderRadius: '8px', fontWeight: '700', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}
+          style={{
+            background: '#ec4899',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 10,
+            padding: '16px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontSize: 16,
+          }}
         >
-          {loading ? 'Publishing Release...' : 'Upload & Publish Asset'}
+          {loading ? 'Publishing...' : 'Publish Product'}
         </button>
 
         {status && (
-          <p style={{ textAlign: 'center', fontSize: '13px', margin: '8px 0 0 0', color: status.includes('Success') ? '#10b981' : '#ec4899' }}>
+          <div
+            style={{
+              background: '#161616',
+              borderRadius: 8,
+              padding: 12,
+              textAlign: 'center',
+            }}
+          >
             {status}
-          </p>
+          </div>
         )}
       </form>
     </div>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '12px',
+  background: '#161616',
+  border: '1px solid #2a2a2a',
+  borderRadius: '8px',
+  color: '#fff',
+  fontSize: '14px',
+  outline: 'none',
+};
+
+const checkboxStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  background: '#161616',
+  padding: '12px',
+  borderRadius: '8px',
+  border: '1px solid #2a2a2a',
+  cursor: 'pointer',
+};
