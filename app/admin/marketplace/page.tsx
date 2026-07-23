@@ -418,37 +418,51 @@ export default function AdminMarketplace() {
           </div>
 
           <div>
-            <p style={{ marginBottom: 8 }}>Cover Preview</p>
+            <p style={{ marginBottom: 8 }}>Cover Image</p>
 
-            {coverPreview && (
-              <div
-                style={{
-                  marginTop: 20,
-                  textAlign: 'center',
-                }}
-              >
-                <img
-                  src={coverPreview}
-                  alt="Preview"
-                  style={{
-                    width: 250,
-                    borderRadius: 12,
-                    border: '2px solid #ec4899',
-                    boxShadow: '0 0 20px rgba(236,72,153,.35)',
-                  }}
-                />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
 
-                <p
-                  style={{
-                    color: '#888',
-                    marginTop: 10,
-                  }}
-                >
-                  Product Cover Preview
-                </p>
-              </div>
-            )}
-          </div>
+                if (!file) return;
+
+                setCoverFile(file);
+
+                setCoverPreview(URL.createObjectURL(file));
+             }}
+           />
+
+           {coverPreview && (
+           <div
+             style={{
+               marginTop: 20,
+               textAlign: 'center',
+           }}
+         >
+          <img
+            src={coverPreview}
+            alt="Preview"
+            style={{
+              width: 250,
+              borderRadius: 12,
+              border: '2px solid #ec4899',
+              boxShadow: '0 0 20px rgba(236,72,153,.35)',
+           }}
+         />
+
+         <p
+           style={{
+            color: '#888',
+            marginTop: 10,
+           }}
+         >
+           Product Cover Preview
+         </p>
+       </div>
+    )}
+  </div>
         </div>
 
         <button
