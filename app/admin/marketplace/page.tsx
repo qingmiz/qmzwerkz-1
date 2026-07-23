@@ -18,6 +18,7 @@ export default function AdminMarketplace() {
   const [fullDescription, setFullDescription] = useState('');
 
   const [price, setPrice] = useState('');
+  const [salePrice, setSalePrice] = useState('');
 
   const [productStatus, setProductStatus] = useState('published');
 
@@ -30,6 +31,7 @@ export default function AdminMarketplace() {
   const [changelog, setChangelog] = useState('');
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState('');
   const [zipFile, setZipFile] = useState<File | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -87,6 +89,7 @@ export default function AdminMarketplace() {
           description: fullDescription,
 
           price: parseFloat(price) || 0,
+          sale_price: parseFloat(salePrice) || null,
 
           featured,
           bestseller,
@@ -111,6 +114,7 @@ export default function AdminMarketplace() {
       setDescription('');
       setFullDescription('');
       setPrice('');
+      setSalePrice('');
       setVersion('1.0.0');
       setChangelog('');
 
@@ -127,6 +131,16 @@ export default function AdminMarketplace() {
       setLoading(false);
     }
   };
+
+  const discount =
+    salePrice &&
+    Number(price) > Number(salePrice)
+      ? Math.round(
+          ((Number(price) - Number(salePrice)) /
+            Number(price)) *
+            100
+       )
+     : 0;
 
   return (
     <div
@@ -215,6 +229,14 @@ export default function AdminMarketplace() {
           type="number"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
+          style={inputStyle}
+        />
+
+        <input
+          placeholder="Sale Price"
+          type="number"
+          value={salePrice}
+          onChange={(e) => setSalePrice(e.target.value)}
           style={inputStyle}
         />
 
@@ -329,22 +351,49 @@ export default function AdminMarketplace() {
             <input
               type="file"
               accept="image/*"
-              onChange={(e) =>
-                setCoverFile(e.target.files?.[0] || null)
-              }
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+
+                if (!file) return;
+
+                setCoverFile(file);
+
+                setCoverPreview(URL.createObjectURL(file));
+              }}
             />
           </div>
 
           <div>
-            <p style={{ marginBottom: 8 }}>ZIP File</p>
+            <p style={{ marginBottom: 8 }}>Cover Preview</p>
 
-            <input
-              type="file"
-              accept=".zip,.rar,.7z"
-              onChange={(e) =>
-                setZipFile(e.target.files?.[0] || null)
-              }
-            />
+            {coverPreview && (
+              <div
+                style={{
+                  marginTop: 20,
+                  textAlign: 'center',
+                }}
+              >
+                <img
+                  src={coverPreview}
+                  alt="Preview"
+                  style={{
+                    width: 250,
+                    borderRadius: 12,
+                    border: '2px solid #ec4899',
+                    boxShadow: '0 0 20px rgba(236,72,153,.35)',
+                  }}
+                />
+
+                <p
+                  style={{
+                    color: '#888',
+                    marginTop: 10,
+                  }}
+                >
+                  Product Cover Preview
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
