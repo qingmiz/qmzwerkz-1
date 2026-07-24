@@ -1,72 +1,76 @@
 'use client';
 
-import Link from 'next/link';
-
 const categories = [
   {
-    title: 'Clothing',
-    icon: '👕',
-    href: '/shop?category=clothing',
+    title: 'FiveM',
+    items: [
+      'Faces',
+      'Skins',
+      'Tattoos',
+      'Road Mods',
+      'Weapons',
+    ],
   },
   {
-    title: 'Faces',
-    icon: '💄',
-    href: '/shop?category=faces',
+    title: 'IMVU',
+    items: [
+      'Faces',
+      'Skins',
+      'Chains (Coming Soon)',
+    ],
   },
   {
-    title: 'Scripts',
-    icon: '💻',
-    href: '/shop?category=scripts',
+    title: 'Second Life',
+    items: ['Coming Soon'],
   },
   {
-    title: 'Weapons',
-    icon: '🔫',
-    href: '/shop?category=weapons',
-  },
-  {
-    title: 'Maps & MLOs',
-    icon: '🗺️',
-    href: '/shop?category=maps',
-  },
-  {
-    title: 'Vehicles',
-    icon: '🚗',
-    href: '/shop?category=vehicles',
+    title: 'Roblox',
+    items: ['Coming Soon'],
   },
 ];
 
 export default function Categories() {
   return (
-    <section className="bg-[#050505] py-20">
+    <section className="bg-black py-24">
       <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-12 text-center">
-          <h2 className="text-4xl font-black text-white">
-            Shop By Category
-          </h2>
-          <p className="mt-3 text-zinc-400">
-            Browse premium FiveM assets built for your community.
-          </p>
-        </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <h2 className="mb-3 text-4xl font-black text-white">
+          Categories
+        </h2>
+
+        <p className="mb-12 text-zinc-400">
+          Browse everything QMZWERKZ has to offer.
+        </p>
+
+        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+
           {categories.map((category) => (
-            <Link
+            <div
               key={category.title}
-              href={category.href}
-              className="group rounded-2xl border border-white/10 bg-white/5 p-8 transition duration-300 hover:border-pink-500 hover:bg-pink-500/10"
+              className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8 transition hover:border-pink-500"
             >
-              <div className="mb-5 text-5xl">{category.icon}</div>
-
-              <h3 className="text-2xl font-bold text-white group-hover:text-pink-400">
+              <h3 className="mb-6 text-2xl font-bold text-white">
                 {category.title}
               </h3>
 
-              <p className="mt-2 text-sm text-zinc-400">
-                View all {category.title.toLowerCase()}.
-              </p>
-            </Link>
+              <div className="space-y-3">
+
+                {category.items.map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-lg bg-zinc-900 px-4 py-3 text-zinc-300"
+                  >
+                    {item}
+                  </div>
+                ))}
+
+              </div>
+
+            </div>
           ))}
+
         </div>
+
       </div>
     </section>
   );
