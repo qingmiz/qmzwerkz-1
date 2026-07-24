@@ -5,6 +5,7 @@ import FeaturedProducts from '@/components/home/FeaturedProducts';
 import OurWork from '@/components/home/OurWork';
 import Services from '@/components/home/Services';
 import LuckyWheelBanner from '@/components/home/LuckyWheelBanner';
+import Footer from '@/components/layout/Footer';
 
 export default function Home() {
   return (
@@ -22,6 +23,8 @@ export default function Home() {
       <Services />
 
       <LuckyWheelBanner />
+
+      <Footer />
     </>
   );
 }
