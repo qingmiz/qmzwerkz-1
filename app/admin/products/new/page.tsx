@@ -1,11 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import Link from "next/link";
 
 export default function NewProductPage() {
+  const [form, setForm] = useState({
+    name: "",
+    platform: "FiveM",
+    category: "",
+    price: "",
+    shortDescription: "",
+    fullDescription: "",
+  });
+
   const [featured, setFeatured] = useState(false);
   const [newRelease, setNewRelease] = useState(true);
+
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [galleryImages, setGalleryImages] = useState<File[]>([]);
+  const [zipFile, setZipFile] = useState<File | null>(null);
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const publishProduct = () => {
+    console.log({
+      ...form,
+      featured,
+      newRelease,
+      coverImage,
+      galleryImages,
+      zipFile,
+    });
+
+    alert(
+      "Publish logic will be connected to Supabase next.\n\nFor now this confirms the form is working."
+    );
+  };
 
   return (
     <main
@@ -21,7 +58,7 @@ export default function NewProductPage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "30px",
+          marginBottom: 30,
         }}
       >
         <div>
@@ -30,7 +67,7 @@ export default function NewProductPage() {
           </h1>
 
           <p style={{ color: "#888", marginTop: 8 }}>
-            Create a new product for the QMZWERKZ marketplace.
+            Create a new marketplace product.
           </p>
         </div>
 
@@ -42,7 +79,7 @@ export default function NewProductPage() {
             fontWeight: "bold",
           }}
         >
-          ← Back to Products
+          ← Back
         </Link>
       </div>
 
@@ -56,52 +93,112 @@ export default function NewProductPage() {
           gap: 20,
         }}
       >
-        <input placeholder="Product Name" style={inputStyle} />
+        <input
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          placeholder="Product Name"
+          style={inputStyle}
+        />
 
-        <select style={inputStyle}>
+        <select
+          name="platform"
+          value={form.platform}
+          onChange={handleChange}
+          style={inputStyle}
+        >
           <option>FiveM</option>
           <option>IMVU</option>
           <option>Website</option>
         </select>
 
-        <input placeholder="Category" style={inputStyle} />
+        <input
+          name="category"
+          value={form.category}
+          onChange={handleChange}
+          placeholder="Category"
+          style={inputStyle}
+        />
 
-        <input placeholder="Price" style={inputStyle} />
+        <input
+          name="price"
+          value={form.price}
+          onChange={handleChange}
+          placeholder="Price"
+          style={inputStyle}
+        />
 
         <textarea
+          name="shortDescription"
+          value={form.shortDescription}
+          onChange={handleChange}
           placeholder="Short Description"
           rows={3}
           style={textareaStyle}
         />
 
         <textarea
+          name="fullDescription"
+          value={form.fullDescription}
+          onChange={handleChange}
           placeholder="Full Description"
           rows={6}
           style={textareaStyle}
         />
 
-        <div style={uploadBox}>
-          📸 Cover Image
-          <br />
-          <span style={{ color: "#888", fontSize: 14 }}>
-            Drag & Drop or Click to Upload
-          </span>
+        <div style={uploadCard}>
+          <h3>📸 Cover Image</h3>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) =>
+              setCoverImage(e.target.files?.[0] || null)
+            }
+          />
+
+          {coverImage && (
+            <p style={fileText}>
+              ✔ {coverImage.name}
+            </p>
+          )}
         </div>
 
-        <div style={uploadBox}>
-          🖼 Gallery Images
-          <br />
-          <span style={{ color: "#888", fontSize: 14 }}>
-            Upload multiple screenshots
-          </span>
+        <div style={uploadCard}>
+          <h3>🖼 Gallery Images</h3>
+
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) =>
+              setGalleryImages(Array.from(e.target.files || []))
+            }
+          />
+
+          {galleryImages.map((file) => (
+            <p key={file.name} style={fileText}>
+              ✔ {file.name}
+            </p>
+          ))}
         </div>
 
-        <div style={uploadBox}>
-          📦 ZIP File
-          <br />
-          <span style={{ color: "#888", fontSize: 14 }}>
-            Upload the downloadable product
-          </span>
+        <div style={uploadCard}>
+          <h3>📦 ZIP File</h3>
+
+          <input
+            type="file"
+            accept=".zip"
+            onChange={(e) =>
+              setZipFile(e.target.files?.[0] || null)
+            }
+          />
+
+          {zipFile && (
+            <p style={fileText}>
+              ✔ {zipFile.name}
+            </p>
+          )}
         </div>
 
         <label style={checkboxStyle}>
@@ -122,7 +219,10 @@ export default function NewProductPage() {
           New Release
         </label>
 
-        <button style={publishButton}>
+        <button
+          onClick={publishProduct}
+          style={publishButton}
+        >
           Publish Product
         </button>
       </div>
@@ -143,18 +243,22 @@ const textareaStyle = {
   resize: "vertical" as const,
 };
 
-const uploadBox = {
+const uploadCard = {
+  background: "#1b1b1b",
   border: "2px dashed #444",
   borderRadius: 12,
-  padding: "30px",
-  textAlign: "center" as const,
-  color: "#fff",
+  padding: 25,
 };
 
 const checkboxStyle = {
   display: "flex",
-  gap: 10,
   alignItems: "center",
+  gap: 10,
+};
+
+const fileText = {
+  color: "#22c55e",
+  marginTop: 10,
 };
 
 const publishButton = {
@@ -163,6 +267,7 @@ const publishButton = {
   color: "#fff",
   padding: "16px",
   borderRadius: 12,
-  fontWeight: "bold",
   cursor: "pointer",
+  fontWeight: "bold",
+  fontSize: "16px",
 };
