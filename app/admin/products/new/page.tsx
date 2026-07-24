@@ -1,50 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function NewProductPage() {
-  const router = useRouter();
-
-  const [loading, setLoading] = useState(false);
-
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    platform: "FiveM",
-    published: false,
-    featured: false,
-    newRelease: true,
-  });
-
-  const [image, setImage] = useState<File | null>(null);
-  const [zipFile, setZipFile] = useState<File | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    setLoading(true);
-
-    try {
-      // Upload image
-      // Upload zip
-      // Insert into products table
-      // Redirect back to /admin/products
-
-      console.log(form);
-      console.log(image);
-      console.log(zipFile);
-
-      router.push("/admin/products");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save product.");
-    }
-
-    setLoading(false);
-  }
+  const [featured, setFeatured] = useState(false);
+  const [newRelease, setNewRelease] = useState(true);
 
   return (
     <main
@@ -52,210 +13,156 @@ export default function NewProductPage() {
         minHeight: "100vh",
         background: "#090909",
         color: "#fff",
-        padding: 40,
+        padding: "40px",
       }}
     >
       <div
         style={{
-          maxWidth: 900,
-          margin: "0 auto",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "30px",
         }}
       >
-        <h1
-          style={{
-            fontSize: 34,
-            marginBottom: 8,
-          }}
-        >
-          New Product
-        </h1>
+        <div>
+          <h1 style={{ fontSize: 34, fontWeight: "bold" }}>
+            New Product
+          </h1>
 
-        <p
-          style={{
-            color: "#888",
-            marginBottom: 40,
-          }}
-        >
-          Create a new marketplace product.
-        </p>
+          <p style={{ color: "#888", marginTop: 8 }}>
+            Create a new product for the QMZWERKZ marketplace.
+          </p>
+        </div>
 
-        <form
-          onSubmit={handleSubmit}
+        <Link
+          href="/admin/products"
           style={{
-            display: "grid",
-            gap: 20,
+            color: "#ec4899",
+            textDecoration: "none",
+            fontWeight: "bold",
           }}
         >
+          ← Back to Products
+        </Link>
+      </div>
+
+      <div
+        style={{
+          background: "#151515",
+          border: "1px solid #2b2b2b",
+          borderRadius: 14,
+          padding: 30,
+          display: "grid",
+          gap: 20,
+        }}
+      >
+        <input placeholder="Product Name" style={inputStyle} />
+
+        <select style={inputStyle}>
+          <option>FiveM</option>
+          <option>IMVU</option>
+          <option>Website</option>
+        </select>
+
+        <input placeholder="Category" style={inputStyle} />
+
+        <input placeholder="Price" style={inputStyle} />
+
+        <textarea
+          placeholder="Short Description"
+          rows={3}
+          style={textareaStyle}
+        />
+
+        <textarea
+          placeholder="Full Description"
+          rows={6}
+          style={textareaStyle}
+        />
+
+        <div style={uploadBox}>
+          📸 Cover Image
+          <br />
+          <span style={{ color: "#888", fontSize: 14 }}>
+            Drag & Drop or Click to Upload
+          </span>
+        </div>
+
+        <div style={uploadBox}>
+          🖼 Gallery Images
+          <br />
+          <span style={{ color: "#888", fontSize: 14 }}>
+            Upload multiple screenshots
+          </span>
+        </div>
+
+        <div style={uploadBox}>
+          📦 ZIP File
+          <br />
+          <span style={{ color: "#888", fontSize: 14 }}>
+            Upload the downloadable product
+          </span>
+        </div>
+
+        <label style={checkboxStyle}>
           <input
-            placeholder="Product Name"
-            value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
-            style={input}
+            type="checkbox"
+            checked={featured}
+            onChange={() => setFeatured(!featured)}
           />
+          Featured Product
+        </label>
 
-          <textarea
-            placeholder="Description"
-            rows={6}
-            value={form.description}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                description: e.target.value,
-              })
-            }
-            style={{
-              ...input,
-              resize: "vertical",
-            }}
+        <label style={checkboxStyle}>
+          <input
+            type="checkbox"
+            checked={newRelease}
+            onChange={() => setNewRelease(!newRelease)}
           />
+          New Release
+        </label>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 20,
-            }}
-          >
-            <input
-              placeholder="Price"
-              type="number"
-              value={form.price}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  price: e.target.value,
-                })
-              }
-              style={input}
-            />
-
-            <input
-              placeholder="Category"
-              value={form.category}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  category: e.target.value,
-                })
-              }
-              style={input}
-            />
-          </div>
-
-          <select
-            value={form.platform}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                platform: e.target.value,
-              })
-            }
-            style={input}
-          >
-            <option>FiveM</option>
-            <option>IMVU</option>
-            <option>Website</option>
-            <option>Second Life</option>
-            <option>Roblox</option>
-          </select>
-
-          <div>
-            <label>Preview Image</label>
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                setImage(e.target.files?.[0] ?? null)
-              }
-            />
-          </div>
-
-          <div>
-            <label>ZIP File</label>
-
-            <input
-              type="file"
-              accept=".zip"
-              onChange={(e) =>
-                setZipFile(e.target.files?.[0] ?? null)
-              }
-            />
-          </div>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={form.published}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  published: e.target.checked,
-                })
-              }
-            />
-
-            {" "}Published
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={form.featured}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  featured: e.target.checked,
-                })
-              }
-            />
-
-            {" "}Featured
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={form.newRelease}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  newRelease: e.target.checked,
-                })
-              }
-            />
-
-            {" "}New Release
-          </label>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              background: "#ec4899",
-              color: "#fff",
-              border: 0,
-              padding: 16,
-              borderRadius: 10,
-              fontWeight: "bold",
-              cursor: "pointer",
-            }}
-          >
-            {loading ? "Saving..." : "Publish Product"}
-          </button>
-        </form>
+        <button style={publishButton}>
+          Publish Product
+        </button>
       </div>
     </main>
   );
 }
 
-const input: React.CSSProperties = {
-  width: "100%",
-  padding: 14,
-  background: "#161616",
-  border: "1px solid #2b2b2b",
+const inputStyle = {
+  background: "#1d1d1d",
+  border: "1px solid #333",
   borderRadius: 10,
+  padding: "14px",
   color: "#fff",
+};
+
+const textareaStyle = {
+  ...inputStyle,
+  resize: "vertical" as const,
+};
+
+const uploadBox = {
+  border: "2px dashed #444",
+  borderRadius: 12,
+  padding: "30px",
+  textAlign: "center" as const,
+  color: "#fff",
+};
+
+const checkboxStyle = {
+  display: "flex",
+  gap: 10,
+  alignItems: "center",
+};
+
+const publishButton = {
+  background: "#ec4899",
+  border: "none",
+  color: "#fff",
+  padding: "16px",
+  borderRadius: 12,
+  fontWeight: "bold",
+  cursor: "pointer",
 };
