@@ -144,10 +144,10 @@ export default function Hero() {
               src="/logos/qmz-logo-white.png"
               alt="QMZWERKZ"
               style={{
-                width: "100%",
-                height: "100%",
+                width: "135%",
+                maxWidth: "750px",
+                height: "auto",
                 objectFit: "contain",
-                background: "transparent",
                 display: "block",
               }}
             />
