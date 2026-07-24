@@ -145,9 +145,15 @@ export default function Hero() {
               fontWeight: 700,
             }}
           >
-            3D PRODUCT SHOWCASE
-            <br />
-            (Coming Next)
+            <img
+              src="/logos/qmz-logo-white.png"
+              alt="QMZWERKZ"
+              style={{
+                width: "85%",
+                maxWidth: "380px",
+                objectFit: "contain",
+              }}
+            />
           </div>
         </div>
       </div>
