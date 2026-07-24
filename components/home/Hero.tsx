@@ -149,9 +149,11 @@ export default function Hero() {
               src="/logos/qmz-logo-white.png"
               alt="QMZWERKZ"
               style={{
-                width: "85%",
-                maxWidth: "380px",
+                width: "100%",
+                height: "100%",
                 objectFit: "contain",
+                background: "transparent",
+                display: "block",
               }}
             />
           </div>
