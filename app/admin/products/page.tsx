@@ -31,7 +31,7 @@ export default function ProductsPage() {
         </div>
 
         <Link
-          href="/admin/marketplace"
+          href="/admin/products/new"
           style={{
             background: "#ec4899",
             color: "#fff",

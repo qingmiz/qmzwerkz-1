@@ -1,76 +1,84 @@
-'use client';
-
-const categories = [
-  {
-    title: 'FiveM',
-    items: [
-      'Faces',
-      'Skins',
-      'Tattoos',
-      'Road Mods',
-      'Weapons',
-    ],
-  },
-  {
-    title: 'IMVU',
-    items: [
-      'Faces',
-      'Skins',
-      'Chains (Coming Soon)',
-    ],
-  },
-  {
-    title: 'Second Life',
-    items: ['Coming Soon'],
-  },
-  {
-    title: 'Roblox',
-    items: ['Coming Soon'],
-  },
-];
-
 export default function Categories() {
-  return (
-    <section className="bg-black py-24">
-      <div className="mx-auto max-w-7xl px-6">
+  const categories = [
+    { title: "FiveM", icon: "🚗" },
+    { title: "IMVU", icon: "💎" },
+    { title: "Web Development", icon: "💻" },
+    { title: "Custom Weapons", icon: "🔫" },
+    { title: "Road Mods", icon: "🛣️" },
+    { title: "Maps & MLOs", icon: "🏙️" },
+  ];
 
-        <h2 className="mb-3 text-4xl font-black text-white">
-          Categories
+  return (
+    <section
+      style={{
+        background: "#0b0b0b",
+        padding: "100px 40px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1400px",
+          margin: "0 auto",
+        }}
+      >
+        <h2
+          style={{
+            color: "#fff",
+            fontSize: "42px",
+            marginBottom: "15px",
+          }}
+        >
+          Browse Categories
         </h2>
 
-        <p className="mb-12 text-zinc-400">
-          Browse everything QMZWERKZ has to offer.
+        <p
+          style={{
+            color: "#888",
+            marginBottom: "50px",
+          }}
+        >
+          Everything you need to build your community.
         </p>
 
-        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-
-          {categories.map((category) => (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+            gap: "25px",
+          }}
+        >
+          {categories.map((cat) => (
             <div
-              key={category.title}
-              className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8 transition hover:border-pink-500"
+              key={cat.title}
+              style={{
+                background: "#151515",
+                border: "1px solid #262626",
+                borderRadius: "18px",
+                padding: "35px",
+                textAlign: "center",
+                transition: ".25s",
+              }}
             >
-              <h3 className="mb-6 text-2xl font-bold text-white">
-                {category.title}
-              </h3>
-
-              <div className="space-y-3">
-
-                {category.items.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-lg bg-zinc-900 px-4 py-3 text-zinc-300"
-                  >
-                    {item}
-                  </div>
-                ))}
-
+              <div
+                style={{
+                  fontSize: "42px",
+                  marginBottom: "15px",
+                }}
+              >
+                {cat.icon}
               </div>
 
+              <h3
+                style={{
+                  color: "#fff",
+                  margin: 0,
+                }}
+              >
+                {cat.title}
+              </h3>
             </div>
           ))}
-
         </div>
-
       </div>
     </section>
   );
