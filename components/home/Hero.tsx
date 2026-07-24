@@ -45,17 +45,14 @@ export default function Hero() {
       >
         {/* LEFT */}
         <div>
-          <span
+          <img
+            src="/images/qmz-logo.png"
+            alt="QMZWERKZ"
             style={{
-              color: '#ff2a85',
-              fontWeight: 700,
-              letterSpacing: '4px',
-              textTransform: 'uppercase',
-              fontSize: '13px',
+              width: "220px",
+              marginBottom: "25px",
             }}
-          >
-            QMZWERKZ
-          </span>
+          />
 
           <h1
             style={{
