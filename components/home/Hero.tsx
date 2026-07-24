@@ -129,20 +129,15 @@ export default function Hero() {
         >
           <div
             style={{
-              width: '100%',
-              maxWidth: '460px',
-              aspectRatio: '1 / 1',
-              borderRadius: '30px',
-              background:
-                'linear-gradient(145deg,#141414,#090909)',
-              border: '1px solid rgba(255,255,255,.08)',
-              boxShadow: '0 0 80px rgba(255,42,133,.18)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#777',
-              fontSize: '18px',
-              fontWeight: 700,
+              width: "100%",
+              height: "650px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: "none",
+              boxShadow: "none",
+              padding: 0,
             }}
           >
             <img
