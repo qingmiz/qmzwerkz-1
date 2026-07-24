@@ -1,23 +1,24 @@
-export async function sendDiscordNotification(title: string, description: string, color: number = 15728880) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhookUrl) return;
+export const DISCORD_SERVER =
+  process.env.NEXT_PUBLIC_DISCORD_SERVER!;
 
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        embeds: [
-          {
-            title: `QMZWERKZ // ${title}`,
-            description: description,
-            color: color,
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      }),
-    });
-  } catch (err) {
-    console.error('Failed to dispatch Discord webhook:', err);
+export const DISCORD_WEBHOOK =
+  process.env.DISCORD_WEBHOOK_URL!;
+
+export const DISCORD_TICKET_CHANNEL =
+  process.env.NEXT_PUBLIC_DISCORD_TICKET_CHANNEL!;
+
+export function openDiscordServer() {
+  if (typeof window !== 'undefined') {
+    window.open(DISCORD_SERVER, '_blank');
   }
+}
+
+export function openClaimTicket(claimCode: string) {
+  if (typeof window === 'undefined') return;
+
+  const url = `${DISCORD_SERVER}`;
+
+  navigator.clipboard.writeText(claimCode).catch(() => {});
+
+  window.open(url, '_blank');
 }
