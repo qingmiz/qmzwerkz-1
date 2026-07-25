@@ -147,22 +147,80 @@ export default function NewProductPage() {
         />
 
         <div style={uploadCard}>
-          <h3>📸 Cover Image</h3>
+          <h3 style={{ marginTop: 0 }}>📸 Cover Image</h3>
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setCoverImage(e.target.files?.[0] || null)
-            }
-          />
+          <label
+            style={{
+              display: "block",
+              border: "2px dashed #ec4899",
+              borderRadius: 12,
+              padding: "35px",
+              textAlign: "center",
+              cursor: "pointer",
+              transition: "0.2s",
+            }}
+          >
+            {coverImage ? (
+              <>
+                <p
+                  style={{
+                    color: "#22c55e",
+                    fontWeight: "bold",
+                    marginBottom: 10,
+                  }}
+                >
+                  ✔ {coverImage.name}
+                </p>
 
-          {coverImage && (
-            <p style={fileText}>
-              ✔ {coverImage.name}
-            </p>
-          )}
-        </div>
+                <img
+                  src={URL.createObjectURL(coverImage)}
+                  alt="Cover Preview"
+                  style={{
+                    width: 180,
+                    borderRadius: 10,
+                  }}
+              />
+            </>
+          ) : (
+            <>
+              <div
+                 style={{
+                   fontSize: 42,
+                   marginBottom: 10,
+                 }}
+              >
+                 📸
+               </div>
+             
+              <div
+                style={{
+                  fontWeight: "bold",
+                }}
+              >
+                Click to Upload Cover Image
+              </div>
+
+              <div
+                style={{
+                  color: "#888",
+                  marginTop: 8,
+                }}
+              >
+                PNG • JPG • WEBP
+             </div>
+           </>
+         )}
+
+         <input
+           hidden
+           type="file"
+           accept="image/*"
+           onChange={(e) =>
+             setCoverImage(e.target.files?.[0] || null)
+          }
+        />
+      </label>
+    </div>
 
         <div style={uploadCard}>
           <h3>🖼 Gallery Images</h3>
