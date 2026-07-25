@@ -7,14 +7,24 @@ export default function Footer() {
     <footer className="border-t border-zinc-800 bg-black">
       <div className="mx-auto max-w-7xl px-6 py-16">
 
-        <div className="grid gap-12 md:grid-cols-4">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
 
           <div>
-            <h2 className="text-3xl font-black text-white">
-              QMZ<span className="text-pink-500">WERKZ</span>.ZIP
-            </h2>
+            <div className="flex items-center gap-3">
+              <img
+                src="/logos/qmz-icon.png"
+                alt="QMZ"
+                className="h-12 w-auto"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <h2 className="text-2xl font-black text-white">
+                QMZWERKZ<span className="text-pink-500">.ZIP</span>
+              </h2>
+            </div>
 
-            <p className="mt-4 text-zinc-400">
+            <p className="mt-4 max-w-xs text-sm text-zinc-400">
               Premium FiveM assets, graphics, websites, and digital experiences.
             </p>
           </div>
@@ -22,30 +32,44 @@ export default function Footer() {
           <div>
             <h3 className="mb-4 font-bold text-white">Marketplace</h3>
 
-            <div className="space-y-2 text-zinc-400">
-              <Link href="/shop">Shop</Link><br />
-              <Link href="/featured">Featured</Link><br />
-              <Link href="/lucky-wheel">Lucky Wheel</Link>
+            <div className="space-y-2 text-sm">
+              <Link href="/shop" className="block text-pink-500 hover:text-pink-400">Shop</Link>
+              <Link href="/featured" className="block text-pink-500 hover:text-pink-400">Featured</Link>
+              <Link href="/lucky-wheel" className="block text-pink-500 hover:text-pink-400">Lucky Wheel</Link>
             </div>
           </div>
 
           <div>
             <h3 className="mb-4 font-bold text-white">Company</h3>
 
-            <div className="space-y-2 text-zinc-400">
-              <Link href="/our-work">Our Work</Link><br />
-              <Link href="/services">Services</Link><br />
-              <Link href="/support">Support</Link>
+            <div className="space-y-2 text-sm">
+              <Link href="/our-work" className="block text-purple-400 hover:text-purple-300">Our Work</Link>
+              <Link href="/services" className="block text-purple-400 hover:text-purple-300">Services</Link>
+              <Link href="/support" className="block text-purple-400 hover:text-purple-300">Support</Link>
             </div>
           </div>
 
           <div>
             <h3 className="mb-4 font-bold text-white">Community</h3>
 
-            <div className="space-y-2 text-zinc-400">
-              <a href="#">Discord</a><br />
-              <a href="#">Terms</a><br />
-              <a href="#">Privacy</a>
+            <div className="space-y-2 text-sm">
+              <a href="#" className="block text-purple-400 hover:text-purple-300">Discord</a>
+              <a href="#" className="block text-purple-400 hover:text-purple-300">Terms</a>
+              <a href="#" className="block text-purple-400 hover:text-purple-300">Privacy</a>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="mb-4 font-bold text-white">Services</h3>
+
+            <div className="space-y-2 text-sm text-zinc-300">
+              <p>FiveM Development</p>
+              <p>IMVU Development</p>
+              <p>Website Creation</p>
+              <p>Graphics Design</p>
+              <p>Visual Editing</p>
+              <p className="text-zinc-500">Second Life (Coming Soon)</p>
+              <p className="text-zinc-500">Roblox (Coming Soon)</p>
             </div>
           </div>
 

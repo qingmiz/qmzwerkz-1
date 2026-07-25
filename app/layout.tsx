@@ -1,5 +1,6 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '../components/layout/Navbar';
+import './globals.css';
 
 export const metadata = {
   title: 'QMZWERKZ // Luxury FiveM Marketplace',
