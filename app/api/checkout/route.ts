@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Tebex did not return a checkout link.' }, { status: 502 });
     }
 
-    return NextResponse.json({ checkoutUrl });
+    return NextResponse.json({ checkoutUrl, ident: basket.ident });
   } catch (err: any) {
     console.error('Checkout error:', err);
     return NextResponse.json({ error: err.message ?? 'Checkout failed.' }, { status: 500 });

@@ -20,6 +20,7 @@ export default function CartContent() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [checkoutStatus, setCheckoutStatus] = useState('');
+  const [paymentComplete, setPaymentComplete] = useState(false);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('qmz_cart');
@@ -63,8 +64,34 @@ export default function CartContent() {
         throw new Error(data.error || 'Checkout failed.');
       }
 
-      localStorage.removeItem('qmz_cart');
-      window.location.href = data.checkoutUrl;
+      const Tebex = (window as any).Tebex;
+
+      if (!Tebex) {
+        // Fallback if the embedded script hasn't loaded for some reason.
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
+      Tebex.checkout.init({ ident: data.ident });
+
+      Tebex.checkout.on('payment:complete', () => {
+        localStorage.removeItem('qmz_cart');
+        setCart([]);
+        setPaymentComplete(true);
+        setLoading(false);
+      });
+
+      Tebex.checkout.on('payment:error', () => {
+        setCheckoutStatus('Payment failed or was declined. No charge was made.');
+        setLoading(false);
+      });
+
+      Tebex.checkout.on('close', () => {
+        setLoading(false);
+      });
+
+      setCheckoutStatus('');
+      Tebex.checkout.launch();
     } catch (err: any) {
       setCheckoutStatus(`Checkout Error: ${err.message}`);
       setLoading(false);
@@ -80,7 +107,7 @@ export default function CartContent() {
         <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>Review items, complete order, or access alternative payment routing.</p>
       </header>
 
-      {paymentStatus === 'complete' && (
+      {(paymentComplete || paymentStatus === 'complete') && (
         <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', borderRadius: '12px', padding: '20px', marginBottom: '24px', textAlign: 'center' }}>
           <p style={{ color: '#10b981', fontWeight: 700, margin: '0 0 6px 0' }}>Payment received!</p>
           <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>
@@ -136,7 +163,7 @@ export default function CartContent() {
               disabled={loading}
               style={{ width: '100%', background: '#ec4899', color: '#fff', padding: '14px', borderRadius: '8px', fontWeight: '700', border: 'none', cursor: 'pointer', fontSize: '14px', marginBottom: '16px' }}
             >
-              {loading ? 'Redirecting to Tebex...' : 'Checkout with Tebex'}
+              {loading ? 'Opening secure checkout...' : 'Checkout with Tebex'}
             </button>
 
             {checkoutStatus && (
