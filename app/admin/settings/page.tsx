@@ -42,8 +42,25 @@ export default function SettingsPage() {
         </div>
 
         <div style={card}>
-          <h2>Payments</h2>
-          <p style={text}>Checkout is powered by Tebex. Configure your store's API keys and webhook in Vercel/Tebex directly.</p>
+          <h2>Payments & Payouts</h2>
+          <p style={text}>
+            Checkout runs through Tebex - money from sales goes into your Tebex Wallet, not directly
+            into this site. Store API keys/webhook secret are configured in Vercel.
+          </p>
+          <a
+            href="https://creator.tebex.io/"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: '#ec4899', fontWeight: 700, fontSize: 13, marginTop: 12, display: 'inline-block' }}
+          >
+            Open Tebex Control Panel →
+          </a>
+          <p style={{ ...text, fontSize: 12 }}>
+            Once there: Payments → Wallet. You'll need to complete identity verification once, then you can
+            add PayPal or a bank account as your payout method (bank transfer availability varies by region -
+            check the Wallet page for what's supported for Jamaica). Bank and PayPal details are entered
+            directly with Tebex and never touch this site.
+          </p>
         </div>
 
         <div style={card}>
