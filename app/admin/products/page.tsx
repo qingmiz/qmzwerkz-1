@@ -33,10 +33,11 @@ export default function ProductsPage() {
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
 
-    const { error } = await supabase.from('products').delete().eq('id', id);
+    const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
 
-    if (error) {
-      alert(`Failed to delete: ${error.message}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(`Failed to delete: ${data.error || 'Unknown error'}`);
       return;
     }
 

@@ -1,12 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function AdminMarketplace() {
   const [name, setName] = useState('');
@@ -50,73 +44,33 @@ export default function AdminMarketplace() {
     setStatus('Uploading assets...');
 
     try {
-      let coverImageUrl = '';
-      let zipFileUrl = '';
+      const form = new FormData();
+      form.append('name', name);
+      form.append('slug', slug);
+      form.append('platform', platform);
+      form.append('category', category);
+      form.append('subcategory', subcategory);
+      form.append('status', productStatus);
+      form.append('short_description', description);
+      form.append('description', fullDescription);
+      form.append('price', price);
+      form.append('sale_price', salePrice);
+      form.append('featured', String(featured));
+      form.append('bestseller', String(bestseller));
+      form.append('new_release', String(newRelease));
+      form.append('free_product', String(freeProduct));
+      form.append('version', version);
+      form.append('changelog', changelog);
+      form.append('tags', tags);
+      form.append('tebex_package_id', tebexPackageId);
+      if (coverFile) form.append('cover', coverFile);
+      if (zipFile) form.append('zip', zipFile);
 
-      if (coverFile) {
-        const fileName = `${Date.now()}-${coverFile.name}`;
+      const res = await fetch('/api/admin/products', { method: 'POST', body: form });
+      const data = await res.json();
 
-        const { error } = await supabase.storage
-          .from('product-images')
-          .upload(fileName, coverFile);
+      if (!res.ok) throw new Error(data.error || 'Failed to publish product.');
 
-        if (error) throw error;
-
-        coverImageUrl = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName).data.publicUrl;
-      }
-
-      if (zipFile) {
-        const zipName = `${Date.now()}-${zipFile.name}`;
-
-        const { error } = await supabase.storage
-          .from('product-files')
-          .upload(zipName, zipFile);
-
-        if (error) throw error;
-
-        // Store the PATH, not a public URL - the "product-files" bucket should
-        // be private. Downloads are only issued via /api/download after a
-        // verified purchase (see app/api/download/[productId]/route.ts).
-        zipFileUrl = zipName;
-      }
-
-      const { error } = await supabase.from('products').insert([
-        {
-          slug,
-          tags: tags
-             .split(',')
-             .map((tag) => tag.trim())
-             .filter(Boolean),
-          name,
-          platform,
-          category,
-          subcategory,
-          status: productStatus,
-
-          short_description: description,
-          description: fullDescription,
-
-          price: parseFloat(price) || 0,
-          sale_price: parseFloat(salePrice) || null,
-
-          featured,
-          bestseller,
-          new_release: newRelease,
-          free_product: freeProduct,
-
-          version,
-          changelog,
-
-          tebex_package_id: tebexPackageId ? parseInt(tebexPackageId, 10) : null,
-
-          cover_image: coverImageUrl,
-          zip_file: zipFileUrl,
-        },
-      ]);
-
-      if (error) throw error;
       setStatus('Product published successfully!');
 
       setName('');

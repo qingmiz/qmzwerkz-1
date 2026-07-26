@@ -34,49 +34,32 @@ export default function EditProductPage() {
     setStatus('Saving...');
 
     try {
-      let coverImageUrl = product.cover_image;
-      let zipFileUrl = product.zip_file;
+      const form = new FormData();
+      form.append('id', id);
+      form.append('name', product.name || '');
+      form.append('slug', product.slug || '');
+      form.append('platform', product.platform || 'FiveM');
+      form.append('category', product.category || '');
+      form.append('subcategory', product.subcategory || '');
+      form.append('status', product.status || 'draft');
+      form.append('short_description', product.short_description || '');
+      form.append('description', product.description || '');
+      form.append('price', String(product.price ?? ''));
+      form.append('sale_price', String(product.sale_price ?? ''));
+      form.append('featured', String(!!product.featured));
+      form.append('bestseller', String(!!product.bestseller));
+      form.append('new_release', String(!!product.new_release));
+      form.append('free_product', String(!!product.free_product));
+      form.append('version', product.version || '');
+      form.append('changelog', product.changelog || '');
+      form.append('tebex_package_id', String(product.tebex_package_id ?? ''));
+      if (coverFile) form.append('cover', coverFile);
+      if (zipFile) form.append('zip', zipFile);
 
-      if (coverFile) {
-        const fileName = `${Date.now()}-${coverFile.name}`;
-        const { error } = await supabase.storage.from('product-images').upload(fileName, coverFile);
-        if (error) throw error;
-        coverImageUrl = supabase.storage.from('product-images').getPublicUrl(fileName).data.publicUrl;
-      }
+      const res = await fetch('/api/admin/products', { method: 'PATCH', body: form });
+      const data = await res.json();
 
-      if (zipFile) {
-        const zipName = `${Date.now()}-${zipFile.name}`;
-        const { error } = await supabase.storage.from('product-files').upload(zipName, zipFile);
-        if (error) throw error;
-        zipFileUrl = zipName; // private bucket path, same convention as the create form
-      }
-
-      const { error } = await supabase
-        .from('products')
-        .update({
-          name: product.name,
-          slug: product.slug,
-          platform: product.platform,
-          category: product.category,
-          subcategory: product.subcategory,
-          status: product.status,
-          short_description: product.short_description,
-          description: product.description,
-          price: parseFloat(product.price) || 0,
-          sale_price: product.sale_price ? parseFloat(product.sale_price) : null,
-          featured: product.featured,
-          bestseller: product.bestseller,
-          new_release: product.new_release,
-          free_product: product.free_product,
-          version: product.version,
-          changelog: product.changelog,
-          tebex_package_id: product.tebex_package_id ? parseInt(product.tebex_package_id, 10) : null,
-          cover_image: coverImageUrl,
-          zip_file: zipFileUrl,
-        })
-        .eq('id', id);
-
-      if (error) throw error;
+      if (!res.ok) throw new Error(data.error || 'Failed to save.');
 
       setStatus('Saved!');
       setTimeout(() => router.push('/admin/products'), 800);
