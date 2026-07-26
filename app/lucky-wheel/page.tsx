@@ -131,6 +131,21 @@ export default function LuckyWheelPage() {
           </>
         )}
       </div>
+
+      <div className="mt-12 grid w-full max-w-lg gap-2 text-left sm:grid-cols-2">
+        {WHEEL_PRIZES.map((prize) => (
+          <div
+            key={prize.label}
+            className="flex items-start gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3"
+          >
+            <span className="text-lg">{prize.icon}</span>
+            <div>
+              <div className="text-sm font-bold text-white">{prize.label}</div>
+              <div className="text-xs text-zinc-500">{prize.description}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
