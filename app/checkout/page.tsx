@@ -21,6 +21,8 @@ export default function CheckoutPage() {
   const [paymentFailed, setPaymentFailed] = useState(false);
   const [paidItems, setPaidItems] = useState<CartItem[] | null>(null);
   const [downloadStatus, setDownloadStatus] = useState<Record<string, string>>({});
+  const [paypalReady, setPaypalReady] = useState(false);
+  const paypalContainerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function init() {
@@ -39,6 +41,80 @@ export default function CheckoutPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (loadingUser || !user || cart.length === 0 || paidItems) return;
+
+    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+    if (!clientId) return; // PayPal not configured yet - just don't show the option.
+
+    function renderButtons() {
+      const paypal = (window as any).paypal;
+      if (!paypal || !paypalContainerRef.current) return;
+
+      paypalContainerRef.current.innerHTML = '';
+
+      paypal
+        .Buttons({
+          style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
+          createOrder: async () => {
+            setPaymentFailed(false);
+            const res = await fetch('/api/paypal/create-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productIds: cart.map((item) => item.id) }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Could not start PayPal checkout.');
+            return data.paypalOrderId;
+          },
+          onApprove: async (data: { orderID: string }) => {
+            setPaying(true);
+            setStatus('Confirming payment with PayPal...');
+
+            const res = await fetch('/api/paypal/capture-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paypalOrderId: data.orderID }),
+            });
+            const result = await res.json();
+
+            setPaying(false);
+            setStatus('');
+
+            if (!res.ok) {
+              setPaymentFailed(true);
+              return;
+            }
+
+            localStorage.removeItem('qmz_cart');
+            setPaidItems(cart);
+            setCart([]);
+          },
+          onError: () => {
+            setPaymentFailed(true);
+            setPaying(false);
+          },
+          onCancel: () => {
+            setPaying(false);
+          },
+        })
+        .render(paypalContainerRef.current);
+
+      setPaypalReady(true);
+    }
+
+    if ((window as any).paypal) {
+      renderButtons();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+    script.onload = renderButtons;
+    document.body.appendChild(script);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingUser, user, cart.length, paidItems]);
 
   const total = cart.reduce((sum, item) => sum + item.price, 0);
 
@@ -265,8 +341,19 @@ export default function CheckoutPage() {
         <p style={{ fontSize: 12, textAlign: 'center', marginTop: 16, color: '#f59e0b' }}>{status}</p>
       )}
 
+      {process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+            <span style={{ fontSize: 11, color: '#666' }}>OR</span>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+          </div>
+          <div ref={paypalContainerRef} />
+        </>
+      )}
+
       <p style={{ fontSize: 11, color: '#666', textAlign: 'center', marginTop: 16 }}>
-        Payment is processed securely by Tebex. Your files unlock immediately after payment is confirmed.
+        Payment is processed securely by Tebex or PayPal. Your files unlock immediately after payment is confirmed.
       </p>
     </div>
   );
