@@ -4,25 +4,11 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { canSpin, generateClaimCode, saveSpin, getLastSpin } from '@/lib/wheel';
+import PrizeWheel, { WHEEL_PRIZES } from '@/components/lucky-wheel/PrizeWheel';
 import type { User } from '@supabase/supabase-js';
 
-const PRIZES = [
-  { label: '5% Off Coupon', weight: 30 },
-  { label: '10% Off Coupon', weight: 25 },
-  { label: '20% Off Coupon', weight: 15 },
-  { label: 'Free Script Drop', weight: 8 },
-  { label: '50% Off Coupon', weight: 5 },
-  { label: 'Try Again Tomorrow', weight: 17 },
-];
-
-function pickPrize() {
-  const total = PRIZES.reduce((sum, p) => sum + p.weight, 0);
-  let roll = Math.random() * total;
-  for (const prize of PRIZES) {
-    if (roll < prize.weight) return prize.label;
-    roll -= prize.weight;
-  }
-  return PRIZES[0].label;
+function pickPrizeIndex() {
+  return Math.floor(Math.random() * WHEEL_PRIZES.length);
 }
 
 export default function LuckyWheelPage() {
@@ -30,6 +16,7 @@ export default function LuckyWheelPage() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [eligible, setEligible] = useState(false);
   const [spinning, setSpinning] = useState(false);
+  const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [result, setResult] = useState<{ prize: string; claimCode: string } | null>(null);
   const [nextSpinAt, setNextSpinAt] = useState<Date | null>(null);
 
@@ -56,10 +43,17 @@ export default function LuckyWheelPage() {
   }, []);
 
   const handleSpin = async () => {
-    if (!user) return;
-    setSpinning(true);
+    if (!user || spinning) return;
 
-    const prize = pickPrize();
+    const index = pickPrizeIndex();
+    setTargetIndex(index);
+    setSpinning(true);
+  };
+
+  const handleSpinEnd = async () => {
+    if (!user || targetIndex === null) return;
+
+    const prize = WHEEL_PRIZES[targetIndex].label;
     const claimCode = generateClaimCode();
 
     const { error } = await saveSpin(user.id, prize, claimCode);
@@ -73,17 +67,20 @@ export default function LuckyWheelPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-6 py-20 text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full border border-pink-500/40 bg-pink-500/10 text-4xl">
-        🎡
-      </div>
+    <div className="mx-auto flex min-h-[80vh] max-w-2xl flex-col items-center justify-center px-6 py-16 text-center">
+      <h1 className="text-4xl font-black text-white">
+        Lucky <span className="text-pink-500">Wheel</span>
+      </h1>
+      <p className="mt-1 text-sm italic text-zinc-500">Spin. Win. Flex.</p>
 
-      <h1 className="mt-6 text-4xl font-black text-white">Lucky Wheel</h1>
-
-      <p className="mt-3 max-w-md text-zinc-400">
+      <p className="mt-4 max-w-md text-zinc-400">
         Sign in with Discord and spin once every 24 hours for exclusive
         rewards, discounts, and premium prizes.
       </p>
+
+      <div className="mt-10">
+        <PrizeWheel spinning={spinning} targetIndex={targetIndex} onSpinEnd={handleSpinEnd} />
+      </div>
 
       <div className="mt-10 w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-8">
         {loadingUser ? (
@@ -107,7 +104,9 @@ export default function LuckyWheelPage() {
               {result.claimCode}
             </p>
             <p className="mt-4 text-xs text-zinc-500">
-              Save this code and redeem it via Discord support. Come back in 24 hours to spin again.
+              Save this code and open a ticket on{' '}
+              <Link href="/support" className="text-pink-500 hover:underline">Discord</Link>{' '}
+              to claim it. Come back in 24 hours to spin again.
             </p>
           </>
         ) : eligible ? (
