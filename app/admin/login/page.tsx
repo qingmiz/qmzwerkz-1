@@ -35,16 +35,19 @@ export default function AdminLogin() {
       return;
     }
 
-    const { data: admin } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
+    const verifyRes = await fetch('/api/admin/verify-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: data.session?.access_token }),
+    });
 
-    if (!admin) {
+    const verify = await verifyRes.json();
+
+    if (!verify.isAdmin) {
       await supabase.auth.signOut();
 
       setError('You are not an admin.');
+      setLoading(false);
 
       return;
     }

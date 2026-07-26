@@ -20,20 +20,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     async function checkAdmin() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         router.replace('/admin/login');
         return;
       }
 
-      const { data: admin } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
+      const verifyRes = await fetch('/api/admin/verify-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: session.access_token }),
+      });
 
-      if (!admin) {
+      const verify = await verifyRes.json();
+
+      if (!verify.isAdmin) {
         router.replace('/admin/login');
         return;
       }
