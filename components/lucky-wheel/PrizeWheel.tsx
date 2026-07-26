@@ -8,8 +8,7 @@ export interface WheelPrize {
   description?: string;
 }
 
-// Order matches the segments visually, going clockwise from the top.
-export const WHEEL_PRIZES: WheelPrize[] = [
+export const DEFAULT_WHEEL_PRIZES: WheelPrize[] = [
   { label: 'FREE Head', icon: '🆓', description: 'One free premade or custom head.' },
   { label: '$5 Store Credit', icon: '💵', description: '$5 credit toward any purchase in the shop.' },
   { label: '10% OFF', icon: '🏷️', description: 'Discount code for a future purchase.' },
@@ -20,15 +19,15 @@ export const WHEEL_PRIZES: WheelPrize[] = [
   { label: 'JACKPOT', icon: '🎉', description: 'The grand prize.' },
 ];
 
-const SEGMENT_ANGLE = 360 / WHEEL_PRIZES.length;
-
 interface Props {
+  prizes: WheelPrize[];
   spinning: boolean;
-  targetIndex: number | null; // index into WHEEL_PRIZES to land on
+  targetIndex: number | null; // index into prizes to land on
   onSpinEnd?: () => void;
 }
 
-export default function PrizeWheel({ spinning, targetIndex, onSpinEnd }: Props) {
+export default function PrizeWheel({ prizes, spinning, targetIndex, onSpinEnd }: Props) {
+  const segmentAngle = 360 / prizes.length;
   const [rotation, setRotation] = useState(0);
   const spinCount = useRef(0);
 
@@ -36,7 +35,7 @@ export default function PrizeWheel({ spinning, targetIndex, onSpinEnd }: Props) 
     if (spinning && targetIndex !== null) {
       spinCount.current += 1;
       // Land so the pointer (fixed at top) points at the center of targetIndex's wedge.
-      const segmentCenter = targetIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+      const segmentCenter = targetIndex * segmentAngle + segmentAngle / 2;
       const fullSpins = 6 * 360;
       const target = fullSpins - segmentCenter + spinCount.current; // tiny offset avoids identical-angle no-op transitions
       setRotation(target);
@@ -47,7 +46,7 @@ export default function PrizeWheel({ spinning, targetIndex, onSpinEnd }: Props) 
 
       return () => clearTimeout(timeout);
     }
-  }, [spinning, targetIndex, onSpinEnd]);
+  }, [spinning, targetIndex, onSpinEnd, segmentAngle]);
 
   return (
     <div className="relative mx-auto flex h-[360px] w-[360px] items-center justify-center sm:h-[460px] sm:w-[460px]">
@@ -78,13 +77,13 @@ export default function PrizeWheel({ spinning, targetIndex, onSpinEnd }: Props) 
           boxShadow: '0 0 30px rgba(236,72,153,0.6), inset 0 0 30px rgba(236,72,153,0.3)',
           transform: `rotate(${rotation}deg)`,
           transition: spinning ? 'transform 4.2s cubic-bezier(0.15, 0.85, 0.25, 1)' : 'none',
-          background: `conic-gradient(${WHEEL_PRIZES.map((_, i) =>
-            `${i % 2 === 0 ? '#1a0a12' : '#0a0a0a'} ${i * SEGMENT_ANGLE}deg ${(i + 1) * SEGMENT_ANGLE}deg`
+          background: `conic-gradient(${prizes.map((_, i) =>
+            `${i % 2 === 0 ? '#1a0a12' : '#0a0a0a'} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg`
           ).join(', ')})`,
         }}
       >
-        {WHEEL_PRIZES.map((prize, i) => {
-          const angle = i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+        {prizes.map((prize, i) => {
+          const angle = i * segmentAngle + segmentAngle / 2;
           return (
             <div
               key={prize.label}
@@ -102,11 +101,11 @@ export default function PrizeWheel({ spinning, targetIndex, onSpinEnd }: Props) 
         })}
 
         {/* Segment divider lines */}
-        {WHEEL_PRIZES.map((_, i) => (
+        {prizes.map((_, i) => (
           <div
             key={`divider-${i}`}
             className="absolute left-1/2 top-1/2 h-1/2 w-[1px] origin-top bg-pink-500/30"
-            style={{ transform: `rotate(${i * SEGMENT_ANGLE}deg)` }}
+            style={{ transform: `rotate(${i * segmentAngle}deg)` }}
           />
         ))}
       </div>

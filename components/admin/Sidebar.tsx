@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: 'Add Product', href: '/admin/marketplace' },
   { label: 'Orders', href: '/admin/orders' },
   { label: 'Customers', href: '/admin/customers' },
+  { label: 'Lucky Wheel', href: '/admin/lucky-wheel' },
   { label: 'Analytics', href: '/admin/analytics' },
   { label: 'Promo Codes', href: '/admin/promo-codes' },
   { label: 'Settings', href: '/admin/settings' },
