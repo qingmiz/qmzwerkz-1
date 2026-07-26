@@ -36,7 +36,7 @@ export default function PrizeWheel({ prizes, spinning, targetIndex, onSpinEnd }:
       spinCount.current += 1;
       // Land so the pointer (fixed at top) points at the center of targetIndex's wedge.
       const segmentCenter = targetIndex * segmentAngle + segmentAngle / 2;
-      const fullSpins = 6 * 360;
+      const fullSpins = 5 * 360;
       const target = fullSpins - segmentCenter + spinCount.current; // tiny offset avoids identical-angle no-op transitions
       setRotation(target);
 
@@ -87,9 +87,9 @@ export default function PrizeWheel({ prizes, spinning, targetIndex, onSpinEnd }:
           return (
             <div
               key={prize.label}
-              className="absolute left-1/2 top-1/2 flex w-[64px] -translate-x-1/2 flex-col items-center text-center"
+              className="absolute left-1/2 top-1/2 flex w-[64px] flex-col items-center text-center"
               style={{
-                transform: `rotate(${angle}deg) translateY(-155px) rotate(${-angle}deg)`,
+                transform: `rotate(${angle}deg) translateY(-155px) rotate(${-angle}deg) translateX(-50%)`,
               }}
             >
               <span className="text-lg leading-none">{prize.icon}</span>
