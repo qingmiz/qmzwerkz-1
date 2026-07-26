@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/require-admin';
 
-export async function GET() {
-  const { admin, error } = await requireAdmin();
+export async function GET(request: Request) {
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const { data: orders, error: ordersError } = await admin
@@ -23,11 +23,13 @@ export async function GET() {
     .select('id, name, price')
     .in('id', productIds.length ? productIds : ['00000000-0000-0000-0000-000000000000']);
 
-  const productMap = new Map((products ?? []).map((p) => [p.id, p]));
+  const productMap = new Map<string, { id: string; name: string; price: number }>(
+    (products ?? []).map((p) => [p.id, p])
+  );
 
   const userMap = new Map<string, string>();
   await Promise.all(
-    userIds.map(async (id) => {
+    userIds.map(async (id: string) => {
       const { data } = await admin.auth.admin.getUserById(id);
       if (data?.user) {
         userMap.set(
@@ -49,7 +51,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const { admin, error } = await requireAdmin();
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const { orderId, status } = await request.json();

@@ -1,5 +1,7 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin-fetch';
+
 import { useEffect, useState } from 'react';
 
 interface Prize {
@@ -36,8 +38,8 @@ export default function AdminLuckyWheelPage() {
 
   const load = async () => {
     const [prizesRes, spinsRes] = await Promise.all([
-      fetch('/api/admin/wheel-prizes'),
-      fetch('/api/admin/wheel-spins'),
+      adminFetch('/api/admin/wheel-prizes'),
+      adminFetch('/api/admin/wheel-spins'),
     ]);
     const prizesData = await prizesRes.json();
     const spinsData = await spinsRes.json();
@@ -56,7 +58,7 @@ export default function AdminLuckyWheelPage() {
     e.preventDefault();
     setSaving(true);
 
-    const res = await fetch('/api/admin/wheel-prizes', {
+    const res = await adminFetch('/api/admin/wheel-prizes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ label, icon, description, weight: parseInt(weight, 10), sortOrder: prizes.length }),
@@ -79,7 +81,7 @@ export default function AdminLuckyWheelPage() {
 
   const toggleActive = async (p: Prize) => {
     setPrizes((prev) => prev.map((x) => (x.id === p.id ? { ...x, active: !x.active } : x)));
-    await fetch('/api/admin/wheel-prizes', {
+    await adminFetch('/api/admin/wheel-prizes', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: p.id, active: !p.active }),
@@ -88,7 +90,7 @@ export default function AdminLuckyWheelPage() {
 
   const updateWeight = async (p: Prize, newWeight: number) => {
     setPrizes((prev) => prev.map((x) => (x.id === p.id ? { ...x, weight: newWeight } : x)));
-    await fetch('/api/admin/wheel-prizes', {
+    await adminFetch('/api/admin/wheel-prizes', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: p.id, weight: newWeight }),
@@ -98,12 +100,12 @@ export default function AdminLuckyWheelPage() {
   const remove = async (id: string) => {
     if (!confirm('Delete this prize?')) return;
     setPrizes((prev) => prev.filter((p) => p.id !== id));
-    await fetch(`/api/admin/wheel-prizes?id=${id}`, { method: 'DELETE' });
+    await adminFetch(`/api/admin/wheel-prizes?id=${id}`, { method: 'DELETE' });
   };
 
   const toggleClaimed = async (s: Spin) => {
     setSpins((prev) => prev.map((x) => (x.id === s.id ? { ...x, claimed: !x.claimed } : x)));
-    await fetch('/api/admin/wheel-spins', {
+    await adminFetch('/api/admin/wheel-spins', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: s.id, claimed: !s.claimed }),

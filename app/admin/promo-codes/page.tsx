@@ -1,5 +1,7 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin-fetch';
+
 import { useEffect, useState } from 'react';
 
 interface PromoCode {
@@ -26,7 +28,7 @@ export default function PromoCodesPage() {
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/promo-codes');
+    const res = await adminFetch('/api/admin/promo-codes');
     const data = await res.json();
     if (res.ok) setCodes(data.promoCodes);
     else setError(data.error || 'Failed to load promo codes.');
@@ -41,7 +43,7 @@ export default function PromoCodesPage() {
     e.preventDefault();
     setSaving(true);
 
-    const res = await fetch('/api/admin/promo-codes', {
+    const res = await adminFetch('/api/admin/promo-codes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -69,7 +71,7 @@ export default function PromoCodesPage() {
 
   const toggleActive = async (c: PromoCode) => {
     setCodes((prev) => prev.map((p) => (p.id === c.id ? { ...p, active: !p.active } : p)));
-    await fetch('/api/admin/promo-codes', {
+    await adminFetch('/api/admin/promo-codes', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: c.id, active: !c.active }),
@@ -78,7 +80,7 @@ export default function PromoCodesPage() {
 
   const remove = async (id: string) => {
     setCodes((prev) => prev.filter((p) => p.id !== id));
-    await fetch(`/api/admin/promo-codes?id=${id}`, { method: 'DELETE' });
+    await adminFetch(`/api/admin/promo-codes?id=${id}`, { method: 'DELETE' });
   };
 
   return (

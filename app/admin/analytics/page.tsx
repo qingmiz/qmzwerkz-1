@@ -1,5 +1,7 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin-fetch';
+
 import { useEffect, useState } from 'react';
 
 interface AnalyticsData {
@@ -17,7 +19,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch('/api/admin/analytics');
+      const res = await adminFetch('/api/admin/analytics');
       const json = await res.json();
       if (res.ok) setData(json);
       else setError(json.error || 'Failed to load analytics.');

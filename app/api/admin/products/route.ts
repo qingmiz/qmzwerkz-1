@@ -44,7 +44,7 @@ function parseFields(form: FormData) {
 }
 
 export async function POST(request: Request) {
-  const { admin, error } = await requireAdmin();
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   try {
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const { admin, error } = await requireAdmin();
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   try {
@@ -98,7 +98,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const { admin, error } = await requireAdmin();
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const { searchParams } = new URL(request.url);

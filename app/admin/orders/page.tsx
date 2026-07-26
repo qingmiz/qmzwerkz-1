@@ -1,5 +1,7 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin-fetch';
+
 import { useEffect, useState } from 'react';
 
 interface Order {
@@ -20,7 +22,7 @@ export default function OrdersPage() {
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/orders');
+    const res = await adminFetch('/api/admin/orders');
     const data = await res.json();
     if (res.ok) {
       setOrders(data.orders);
@@ -36,7 +38,7 @@ export default function OrdersPage() {
 
   const updateStatus = async (orderId: string, status: string) => {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
-    await fetch('/api/admin/orders', {
+    await adminFetch('/api/admin/orders', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId, status }),

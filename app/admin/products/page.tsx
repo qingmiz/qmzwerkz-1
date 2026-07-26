@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-fetch";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
@@ -33,7 +34,7 @@ export default function ProductsPage() {
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
 
-    const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
+    const res = await adminFetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

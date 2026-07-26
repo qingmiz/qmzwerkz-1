@@ -1,5 +1,7 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin-fetch';
+
 import { useEffect, useState } from 'react';
 
 interface Customer {
@@ -18,7 +20,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch('/api/admin/customers');
+      const res = await adminFetch('/api/admin/customers');
       const data = await res.json();
       if (res.ok) {
         setCustomers(data.customers);

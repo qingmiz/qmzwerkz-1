@@ -1,5 +1,7 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin-fetch';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -26,8 +28,8 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       const [analyticsRes, ordersRes] = await Promise.all([
-        fetch('/api/admin/analytics'),
-        fetch('/api/admin/orders'),
+        adminFetch('/api/admin/analytics'),
+        adminFetch('/api/admin/orders'),
       ]);
 
       const analytics = await analyticsRes.json();

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/require-admin';
 
-export async function GET() {
-  const { admin, error } = await requireAdmin();
+export async function GET(request: Request) {
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const { data: orders, error: ordersError } = await admin
@@ -14,7 +14,7 @@ export async function GET() {
   }
 
   const { data: products } = await admin.from('products').select('id, price');
-  const priceMap = new Map((products ?? []).map((p) => [p.id, p.price as number]));
+  const priceMap = new Map<string, number>((products ?? []).map((p) => [p.id, p.price as number]));
 
   const byUser = new Map<
     string,

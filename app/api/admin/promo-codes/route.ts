@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/require-admin';
 
-export async function GET() {
-  const { admin, error } = await requireAdmin();
+export async function GET(request: Request) {
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const { data, error: dbError } = await admin
@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { admin, error } = await requireAdmin();
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const body = await request.json();
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const { admin, error } = await requireAdmin();
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const { id, active } = await request.json();
@@ -51,7 +51,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const { admin, error } = await requireAdmin();
+  const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   const { searchParams } = new URL(request.url);

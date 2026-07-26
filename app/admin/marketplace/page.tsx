@@ -1,5 +1,7 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin-fetch';
+
 import React, { useState } from 'react';
 
 export default function AdminMarketplace() {
@@ -66,7 +68,7 @@ export default function AdminMarketplace() {
       if (coverFile) form.append('cover', coverFile);
       if (zipFile) form.append('zip', zipFile);
 
-      const res = await fetch('/api/admin/products', { method: 'POST', body: form });
+      const res = await adminFetch('/api/admin/products', { method: 'POST', body: form });
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || 'Failed to publish product.');
