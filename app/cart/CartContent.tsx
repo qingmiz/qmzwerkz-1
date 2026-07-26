@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
@@ -14,13 +13,8 @@ interface CartItem {
 }
 
 export default function CartContent() {
-  const searchParams = useSearchParams();
-  const paymentStatus = searchParams.get('status'); // 'complete' | 'cancelled' from Tebex redirect
-
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [checkoutStatus, setCheckoutStatus] = useState('');
-  const [paymentComplete, setPaymentComplete] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('qmz_cart');
@@ -31,6 +25,8 @@ export default function CartContent() {
         console.error(e);
       }
     }
+
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
   }, []);
 
   const removeFromCart = (id: string) => {
@@ -39,88 +35,14 @@ export default function CartContent() {
     localStorage.setItem('qmz_cart', JSON.stringify(updated));
   };
 
-  const handleCheckout = async () => {
-    setLoading(true);
-    setCheckoutStatus('Preparing secure Tebex checkout...');
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      setCheckoutStatus('Please sign in with Discord before checking out.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productIds: cart.map((item) => item.id) }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Checkout failed.');
-      }
-
-      const Tebex = (window as any).Tebex;
-
-      if (!Tebex) {
-        // Fallback if the embedded script hasn't loaded for some reason.
-        window.location.href = data.checkoutUrl;
-        return;
-      }
-
-      Tebex.checkout.init({ ident: data.ident });
-
-      Tebex.checkout.on('payment:complete', () => {
-        localStorage.removeItem('qmz_cart');
-        setCart([]);
-        setPaymentComplete(true);
-        setLoading(false);
-      });
-
-      Tebex.checkout.on('payment:error', () => {
-        setCheckoutStatus('Payment failed or was declined. No charge was made.');
-        setLoading(false);
-      });
-
-      Tebex.checkout.on('close', () => {
-        setLoading(false);
-      });
-
-      setCheckoutStatus('');
-      Tebex.checkout.launch();
-    } catch (err: any) {
-      setCheckoutStatus(`Checkout Error: ${err.message}`);
-      setLoading(false);
-    }
-  };
-
   const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
 
   return (
     <div style={{ minHeight: 'calc(100vh - 73px)', background: '#000', color: '#fff', padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>
       <header style={{ marginBottom: '32px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '20px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px 0' }}>QMZ WERKZ // Secure Checkout & Cart</h1>
-        <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>Review items, complete order, or access alternative payment routing.</p>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px 0' }}>QMZ WERKZ // Cart</h1>
+        <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>Review your items, then continue to checkout.</p>
       </header>
-
-      {(paymentComplete || paymentStatus === 'complete') && (
-        <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', borderRadius: '12px', padding: '20px', marginBottom: '24px', textAlign: 'center' }}>
-          <p style={{ color: '#10b981', fontWeight: 700, margin: '0 0 6px 0' }}>Payment received!</p>
-          <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>
-            Your order is being confirmed - it'll appear in <Link href="/account" style={{ color: '#10b981' }}>My Account</Link> once Tebex verifies the payment (usually within moments).
-          </p>
-        </div>
-      )}
-
-      {paymentStatus === 'cancelled' && (
-        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444', borderRadius: '12px', padding: '20px', marginBottom: '24px', textAlign: 'center' }}>
-          <p style={{ color: '#ef4444', fontWeight: 700, margin: 0 }}>Checkout was cancelled - no payment was taken.</p>
-        </div>
-      )}
 
       {cart.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px', background: '#111', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -158,17 +80,16 @@ export default function CartContent() {
               <span style={{ color: '#ec4899' }}>${totalPrice.toFixed(2)}</span>
             </div>
 
-            <button
-              onClick={handleCheckout}
-              disabled={loading}
-              style={{ width: '100%', background: '#ec4899', color: '#fff', padding: '14px', borderRadius: '8px', fontWeight: '700', border: 'none', cursor: 'pointer', fontSize: '14px', marginBottom: '16px' }}
+            <Link
+              href="/checkout"
+              style={{ display: 'block', textAlign: 'center', width: '100%', background: '#ec4899', color: '#fff', padding: '14px', borderRadius: '8px', fontWeight: '700', textDecoration: 'none', fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box' }}
             >
-              {loading ? 'Opening secure checkout...' : 'Checkout with Tebex'}
-            </button>
+              Proceed to Checkout
+            </Link>
 
-            {checkoutStatus && (
-              <p style={{ fontSize: '12px', lineHeight: '1.4', textAlign: 'center', margin: '0 0 16px 0', color: checkoutStatus.includes('Success') ? '#10b981' : '#ec4899' }}>
-                {checkoutStatus}
+            {signedIn === false && (
+              <p style={{ fontSize: '12px', textAlign: 'center', color: '#f59e0b', margin: '0 0 16px 0' }}>
+                You'll be asked to sign in with Discord at checkout.
               </p>
             )}
 
