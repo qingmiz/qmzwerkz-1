@@ -16,7 +16,7 @@ export default function SupportPage() {
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           <a
-            href="https://discord.gg/"
+            href="https://discord.com/channels/1458550712119070925/1458550715130581238"
             target="_blank"
             rel="noreferrer"
             className="rounded-xl bg-[#5865F2] px-6 py-4 font-bold text-white transition hover:brightness-110"
