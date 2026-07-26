@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountPercent: number } | null>(null);
   const [promoStatus, setPromoStatus] = useState('');
   const [checkingPromo, setCheckingPromo] = useState(false);
+  const [cfxUsername, setCfxUsername] = useState('');
 
   const paypalConfigured = !!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
@@ -71,7 +72,7 @@ export default function CheckoutPage() {
             const res = await fetch('/api/paypal/create-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ productIds: cart.map((item) => item.id), promoCode: appliedPromo?.code }),
+              body: JSON.stringify({ productIds: cart.map((item) => item.id), promoCode: appliedPromo?.code, cfxUsername: cfxUsername.trim() || undefined }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Could not start PayPal checkout.');
@@ -119,7 +120,7 @@ export default function CheckoutPage() {
     script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
     script.onload = renderButtons;
     document.body.appendChild(script);
-  }, [method, paypalConfigured, cart, paidItems, appliedPromo]);
+  }, [method, paypalConfigured, cart, paidItems, appliedPromo, cfxUsername]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
   const discountAmount = appliedPromo ? subtotal * (appliedPromo.discountPercent / 100) : 0;
@@ -161,7 +162,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productIds: cart.map((item) => item.id), promoCode: appliedPromo?.code }),
+        body: JSON.stringify({ productIds: cart.map((item) => item.id), promoCode: appliedPromo?.code, cfxUsername: cfxUsername.trim() || undefined }),
       });
 
       const data = await res.json();
@@ -363,7 +364,7 @@ export default function CheckoutPage() {
         <h3 style={{ fontSize: 13, fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: 16 }}>
           Buyer
         </h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
           {(user.user_metadata?.avatar_url as string) && (
             <img src={user.user_metadata.avatar_url as string} alt="" style={{ width: 40, height: 40, borderRadius: '50%' }} />
           )}
@@ -374,6 +375,19 @@ export default function CheckoutPage() {
             <div style={{ fontSize: 12, color: '#888' }}>{user.email}</div>
           </div>
         </div>
+
+        <label style={{ display: 'block', fontSize: 12, color: '#888', marginBottom: 6 }}>
+          Cfx.re / FiveM Username <span style={{ color: '#555' }}>(optional)</span>
+        </label>
+        <input
+          value={cfxUsername}
+          onChange={(e) => setCfxUsername(e.target.value)}
+          placeholder="e.g. your Cfx.re forum username"
+          style={{ width: '100%', padding: '10px 12px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13, boxSizing: 'border-box' }}
+        />
+        <p style={{ fontSize: 11, color: '#555', marginTop: 6 }}>
+          Helps with support and delivery for FiveM assets. Not required for download.
+        </p>
       </div>
 
       <div style={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 24, marginBottom: 24 }}>

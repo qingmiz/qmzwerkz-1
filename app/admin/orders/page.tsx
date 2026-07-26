@@ -10,6 +10,7 @@ interface Order {
   product_name: string;
   amount: number | null;
   status: string;
+  cfx_username?: string | null;
   created_at: string;
 }
 
@@ -57,6 +58,7 @@ export default function OrdersPage() {
           <thead>
             <tr style={{ background: '#1d1d1d' }}>
               <th style={th}>Customer</th>
+              <th style={th}>Cfx.re / FiveM</th>
               <th style={th}>Product</th>
               <th style={th}>Amount</th>
               <th style={th}>Date</th>
@@ -65,13 +67,14 @@ export default function OrdersPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td style={td} colSpan={5}>Loading...</td></tr>
+              <tr><td style={td} colSpan={6}>Loading...</td></tr>
             ) : orders.length === 0 ? (
-              <tr><td style={td} colSpan={5}>No orders yet.</td></tr>
+              <tr><td style={td} colSpan={6}>No orders yet.</td></tr>
             ) : (
               orders.map((o) => (
                 <tr key={o.id}>
                   <td style={td}>{o.customer}</td>
+                  <td style={td}>{o.cfx_username || '-'}</td>
                   <td style={td}>{o.product_name}</td>
                   <td style={td}>{o.amount != null ? `$${o.amount}` : '-'}</td>
                   <td style={td}>{new Date(o.created_at).toLocaleDateString()}</td>

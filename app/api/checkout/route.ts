@@ -8,7 +8,11 @@ import { validatePromoCode } from '@/lib/promo';
 // Expects: { productIds: string[], promoCode?: string }
 export async function POST(request: Request) {
   try {
-    const { productIds, promoCode } = (await request.json()) as { productIds: string[]; promoCode?: string };
+    const { productIds, promoCode, cfxUsername } = (await request.json()) as {
+      productIds: string[];
+      promoCode?: string;
+      cfxUsername?: string;
+    };
 
     if (!Array.isArray(productIds) || productIds.length === 0) {
       return NextResponse.json({ error: 'No items provided.' }, { status: 400 });
@@ -62,6 +66,7 @@ export async function POST(request: Request) {
           status: 'pending',
           payment_method: 'tebex',
           promo_code: validPromoCode,
+          cfx_username: cfxUsername || null,
         }))
       )
       .select('id, product_id');

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
 
   const { data: orders, error: ordersError } = await admin
     .from('orders')
-    .select('id, user_id, product_id, status, payment_method, tebex_transaction_id, created_at')
+    .select('id, user_id, product_id, status, payment_method, tebex_transaction_id, cfx_username, created_at')
     .order('created_at', { ascending: false })
     .limit(200);
 
