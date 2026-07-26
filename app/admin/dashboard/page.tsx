@@ -51,7 +51,35 @@ export default function DashboardPage() {
   return (
     <main style={{ minHeight: '100vh', background: '#090909', color: '#fff', padding: '40px' }}>
       <h1 style={{ fontSize: '34px', fontWeight: 700, marginBottom: 8 }}>QMZWERKZ Admin Dashboard</h1>
-      <p style={{ color: '#888', marginBottom: 40 }}>Welcome back. Here's what's happening with your marketplace.</p>
+      <p style={{ color: '#888', marginBottom: 24 }}>Welcome back. Here's what's happening with your marketplace.</p>
+
+      <a
+        href="https://creator.tebex.io/"
+        target="_blank"
+        rel="noreferrer"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(90deg, rgba(236,72,153,0.15), rgba(236,72,153,0.05))',
+          border: '1px solid rgba(236,72,153,0.4)',
+          borderRadius: 14,
+          padding: '18px 24px',
+          marginBottom: 32,
+          textDecoration: 'none',
+          color: '#fff',
+        }}
+      >
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>💸 Get paid</div>
+          <div style={{ color: '#ccc', fontSize: 13, marginTop: 2 }}>
+            Sales money sits in your Tebex Wallet. Set up PayPal or bank withdrawal there.
+          </div>
+        </div>
+        <span style={{ color: '#ec4899', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>
+          Open Tebex Wallet →
+        </span>
+      </a>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 20 }}>
         {cards.map((card) => (
