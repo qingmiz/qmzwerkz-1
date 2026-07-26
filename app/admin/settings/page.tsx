@@ -38,7 +38,11 @@ export default function SettingsPage() {
       >
         <div style={card}>
           <h2>Store Information</h2>
-          <p style={text}>Marketplace name, branding and contact details.</p>
+          <p style={text}>
+            Store name, branding, and colors are currently set directly in the code
+            (components/layout/Navbar.tsx, Footer.tsx). Let me know if you'd like this made editable
+            here instead - it's a real feature I can build, just not wired up yet.
+          </p>
         </div>
 
         <div style={card}>
@@ -65,12 +69,21 @@ export default function SettingsPage() {
 
         <div style={card}>
           <h2>Downloads</h2>
-          <p style={text}>Control download limits and customer access.</p>
+          <p style={text}>
+            Downloads are already purchase-gated automatically: a customer can only download a file
+            after their order is marked "completed" (verified by Tebex or PayPal). There are no
+            download limits or expiry currently - every completed order gets unlimited re-downloads
+            via My Account. Let me know if you want limits added.
+          </p>
         </div>
 
         <div style={card}>
           <h2>Security</h2>
-          <p style={text}>Admin permissions, API keys and authentication.</p>
+          <p style={text}>
+            Admin access is controlled by the <code style={{ color: '#ec4899' }}>admin_users</code> table
+            in Supabase - only accounts listed there can sign in at /admin/login. To add or remove an
+            admin, run a SQL insert/delete on that table directly in the Supabase dashboard.
+          </p>
         </div>
       </div>
     </main>

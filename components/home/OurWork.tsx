@@ -30,7 +30,7 @@ export default function OurWork() {
   }, []);
 
   return (
-    <section style={{ background: '#090909', padding: '100px 40px' }}>
+    <section id="our-work" style={{ background: '#090909', padding: '100px 40px' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <h2 style={{ color: '#fff', fontSize: '42px', marginBottom: '15px' }}>Our Work</h2>
         <p style={{ color: '#888', marginBottom: '50px' }}>

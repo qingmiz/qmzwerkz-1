@@ -4,7 +4,7 @@ const features = [
   {
     title: '⚡ Instant Delivery',
     description:
-      'Receive your purchases instantly through ZIP downloads, Tebex packages, GitHub releases, or your QMZ account.',
+      'Receive your purchases instantly - files unlock the moment payment is confirmed, ready to download from your account.',
   },
   {
     title: '🔒 Secure Checkout',
