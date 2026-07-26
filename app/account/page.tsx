@@ -1,18 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Order {
   id: string;
   created_at: string;
-  total_amount: number;
   status: string;
+  product_id: string;
+  product_name?: string;
+  product_price?: number;
 }
 
 export default function AccountPage() {
@@ -29,16 +27,41 @@ export default function AccountPage() {
         const { data, error } = await supabase
           .from('orders')
           .select('*')
+          .eq('user_id', session.user.id)
           .order('created_at', { ascending: false });
 
         if (data && !error) {
-          setOrders(data);
+          const productIds = [...new Set(data.map((o) => o.product_id))];
+          const { data: products } = await supabase
+            .from('products')
+            .select('id, name, price')
+            .in('id', productIds.length ? productIds : ['00000000-0000-0000-0000-000000000000']);
+
+          const productMap = new Map((products ?? []).map((p) => [p.id, p]));
+
+          setOrders(
+            data.map((o) => ({
+              ...o,
+              product_name: productMap.get(o.product_id)?.name ?? 'Unknown product',
+              product_price: productMap.get(o.product_id)?.price,
+            }))
+          );
         }
       }
       setLoading(false);
     }
     fetchUserData();
   }, []);
+
+  const handleDownload = async (productId: string) => {
+    const res = await fetch(`/api/download/${productId}`);
+    if (res.ok) {
+      window.location.href = res.url;
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'Could not start download.');
+    }
+  };
 
   if (loading) {
     return (
@@ -77,14 +100,20 @@ export default function AccountPage() {
               {orders.map((order) => (
                 <div key={order.id} style={{ background: '#161616', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>Order #{order.id.slice(0, 8)}</div>
-                    <div style={{ fontSize: '12px', color: '#888' }}>{new Date(order.created_at).toLocaleDateString()}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{order.product_name}</div>
+                    <div style={{ fontSize: '12px', color: '#888' }}>{new Date(order.created_at).toLocaleDateString()} · {order.status}</div>
                   </div>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#ff2a85' }}>${order.total_amount}</span>
-                    <button onClick={() => alert('Fetching secure download archive...')} style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                      Download Zip
-                    </button>
+                    {order.product_price != null && (
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#ff2a85' }}>${order.product_price}</span>
+                    )}
+                    {order.status === 'completed' ? (
+                      <button onClick={() => handleDownload(order.product_id)} style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                        Download Zip
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 600 }}>{order.status}</span>
+                    )}
                   </div>
                 </div>
               ))}

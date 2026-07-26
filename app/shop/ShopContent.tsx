@@ -2,16 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '@/lib/supabase';
 
 interface Product {
   id: string;
   name: string;
   category: string;
+  platform?: string;
   short_description: string;
   price: number;
   cover_image?: string;
@@ -22,6 +19,7 @@ interface Product {
 export default function ShopContent() {
   const searchParams = useSearchParams();
   const query = (searchParams.get('q') || '').toLowerCase().trim();
+  const categoryFilter = (searchParams.get('category') || '').toLowerCase().trim();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,20 +56,32 @@ export default function ShopContent() {
     }
   };
 
-  const filteredProducts = query
-    ? products.filter((p) =>
-        [p.name, p.category, p.short_description]
-          .filter(Boolean)
-          .some((field) => field!.toLowerCase().includes(query))
-      )
-    : products;
+  const filteredProducts = products
+    .filter((p) =>
+      query
+        ? [p.name, p.category, p.short_description]
+            .filter(Boolean)
+            .some((field) => field!.toLowerCase().includes(query))
+        : true
+    )
+    .filter((p) =>
+      categoryFilter
+        ? [p.category, p.platform]
+            .filter(Boolean)
+            .some((field) => field!.toLowerCase().includes(categoryFilter))
+        : true
+    );
 
   return (
     <div style={{ minHeight: 'calc(100vh - 73px)', padding: '40px', maxWidth: '1200px', margin: '0 auto', background: '#000', color: '#fff' }}>
       <header style={{ marginBottom: '32px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '20px' }}>
         <h1 style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 8px 0' }}>QMZ WERKZ // Storefront</h1>
         <p style={{ color: '#888888', fontSize: '14px', margin: 0 }}>
-          {query ? `Showing results for "${searchParams.get('q')}"` : 'Browse available FiveM assets and custom releases.'}
+          {query
+            ? `Showing results for "${searchParams.get('q')}"`
+            : categoryFilter
+            ? `Category: ${searchParams.get('category')}`
+            : 'Browse available FiveM assets and custom releases.'}
         </p>
       </header>
 
@@ -79,7 +89,11 @@ export default function ShopContent() {
         <div style={{ color: '#888', textAlign: 'center', padding: '60px' }}>Loading assets...</div>
       ) : filteredProducts.length === 0 ? (
         <div style={{ color: '#888', textAlign: 'center', padding: '60px', background: '#111', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-          {query ? `No products match "${searchParams.get('q')}".` : 'No products published yet.'}
+          {query
+            ? `No products match "${searchParams.get('q')}".`
+            : categoryFilter
+            ? `No products in "${searchParams.get('category')}" yet.`
+            : 'No products published yet.'}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>

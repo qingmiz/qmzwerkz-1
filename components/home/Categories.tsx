@@ -48,8 +48,9 @@ export default function Categories() {
           }}
         >
           {categories.map((cat) => (
-            <div
+            <a
               key={cat.title}
+              href={`/shop?category=${encodeURIComponent(cat.title)}`}
               style={{
                 background: "#151515",
                 border: "1px solid #262626",
@@ -57,6 +58,9 @@ export default function Categories() {
                 padding: "35px",
                 textAlign: "center",
                 transition: ".25s",
+                display: "block",
+                textDecoration: "none",
+                cursor: "pointer",
               }}
             >
               <div
@@ -76,7 +80,7 @@ export default function Categories() {
               >
                 {cat.title}
               </h3>
-            </div>
+            </a>
           ))}
         </div>
       </div>
