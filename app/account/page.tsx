@@ -53,7 +53,7 @@ export default function AccountPage() {
       <div style={{ minHeight: 'calc(100vh - 73px)', background: '#000', color: '#fff', padding: '80px 20px', textAlign: 'center' }}>
         <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '12px' }}>Authentication Required</h2>
         <p style={{ color: '#888', fontSize: '14px', marginBottom: '24px' }}>Please sign in to access your downloaded assets and active license keys.</p>
-        <Link href="/auth" style={{ background: '#ff2a85', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 700, textDecoration: 'none' }}>
+        <Link href="/login" style={{ background: '#ff2a85', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 700, textDecoration: 'none' }}>
           Sign In / Register
         </Link>
       </div>
