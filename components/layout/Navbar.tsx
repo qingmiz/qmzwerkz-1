@@ -9,6 +9,7 @@ import type { User } from '@supabase/supabase-js';
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -18,6 +19,26 @@ export default function Navbar() {
     });
 
     return () => listener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    function readCart() {
+      try {
+        const cart = JSON.parse(localStorage.getItem('qmz_cart') || '[]');
+        setCartCount(Array.isArray(cart) ? cart.length : 0);
+      } catch {
+        setCartCount(0);
+      }
+    }
+
+    readCart();
+    window.addEventListener('cart-updated', readCart);
+    window.addEventListener('storage', readCart);
+
+    return () => {
+      window.removeEventListener('cart-updated', readCart);
+      window.removeEventListener('storage', readCart);
+    };
   }, []);
 
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
@@ -44,6 +65,19 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-4">
+
+          <Link
+            href="/cart"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 text-white transition hover:bg-zinc-800"
+            aria-label="Cart"
+          >
+            🛒
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 text-[10px] font-bold text-white">
+                {cartCount}
+              </span>
+            )}
+          </Link>
 
           <Link
             href="/admin/login"
@@ -76,13 +110,6 @@ export default function Navbar() {
                     className="block px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900"
                   >
                     My Account
-                  </Link>
-                  <Link
-                    href="/cart"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900"
-                  >
-                    Cart
                   </Link>
                   <button
                     onClick={async () => {

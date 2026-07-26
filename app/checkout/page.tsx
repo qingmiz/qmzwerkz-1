@@ -90,7 +90,7 @@ export default function CheckoutPage() {
               return;
             }
 
-            localStorage.removeItem('qmz_cart');
+            localStorage.removeItem('qmz_cart'); window.dispatchEvent(new Event('cart-updated'));
             setPaidItems(cart);
             setCart([]);
           },
@@ -144,7 +144,7 @@ export default function CheckoutPage() {
       Tebex.checkout.init({ ident: data.ident });
 
       Tebex.checkout.on('payment:complete', () => {
-        localStorage.removeItem('qmz_cart');
+        localStorage.removeItem('qmz_cart'); window.dispatchEvent(new Event('cart-updated'));
         setPaidItems(cart);
         setCart([]);
         setStatus('');

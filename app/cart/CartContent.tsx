@@ -33,6 +33,7 @@ export default function CartContent() {
     const updated = cart.filter((item) => item.id !== id);
     setCart(updated);
     localStorage.setItem('qmz_cart', JSON.stringify(updated));
+    window.dispatchEvent(new Event('cart-updated'));
   };
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);

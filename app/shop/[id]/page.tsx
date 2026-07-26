@@ -47,6 +47,7 @@ export default function ProductDetailPage() {
     const existingCart = JSON.parse(localStorage.getItem('qmz_cart') || '[]');
     const updatedCart = [...existingCart, prod];
     localStorage.setItem('qmz_cart', JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event('cart-updated'));
     setJustAdded(true);
   };
 
@@ -158,8 +159,14 @@ export default function ProductDetailPage() {
                 Checkout
               </button>
               <button
-                onClick={() => { setJustAdded(false); router.push('/shop'); }}
+                onClick={() => router.push('/cart')}
                 style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: 14, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+              >
+                View Cart / Remove Items
+              </button>
+              <button
+                onClick={() => { setJustAdded(false); router.push('/shop'); }}
+                style={{ background: 'transparent', color: '#888', border: 'none', padding: 10, fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
               >
                 Continue Shopping
               </button>
