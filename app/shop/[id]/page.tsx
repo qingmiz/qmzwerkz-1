@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
@@ -20,9 +20,11 @@ interface Product {
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [justAdded, setJustAdded] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -45,7 +47,7 @@ export default function ProductDetailPage() {
     const existingCart = JSON.parse(localStorage.getItem('qmz_cart') || '[]');
     const updatedCart = [...existingCart, prod];
     localStorage.setItem('qmz_cart', JSON.stringify(updatedCart));
-    alert(`${prod.name} added to cart!`);
+    setJustAdded(true);
   };
 
   const handleDownload = async (productId: string) => {
@@ -134,6 +136,37 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      {justAdded && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+          onClick={() => setJustAdded(false)}
+        >
+          <div
+            style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 32, maxWidth: 380, width: '90%', textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>Added to cart</h3>
+            <p style={{ color: '#888', fontSize: 13, marginBottom: 24 }}>{product.name}</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => router.push('/checkout')}
+                style={{ background: '#ec4899', color: '#fff', border: 'none', padding: 14, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Checkout
+              </button>
+              <button
+                onClick={() => { setJustAdded(false); router.push('/shop'); }}
+                style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: 14, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

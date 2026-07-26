@@ -12,17 +12,21 @@ interface CartItem {
   cover_image?: string;
 }
 
+type PaymentMethod = 'tebex' | 'paypal';
+
 export default function CheckoutPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [paying, setPaying] = useState(false);
   const [status, setStatus] = useState('');
   const [paymentFailed, setPaymentFailed] = useState(false);
   const [paidItems, setPaidItems] = useState<CartItem[] | null>(null);
   const [downloadStatus, setDownloadStatus] = useState<Record<string, string>>({});
-  const [paypalReady, setPaypalReady] = useState(false);
   const paypalContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const paypalConfigured = !!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
   useEffect(() => {
     async function init() {
@@ -42,11 +46,11 @@ export default function CheckoutPage() {
     }
   }, []);
 
+  // Render the PayPal button only once the user has chosen PayPal on the summary step.
   useEffect(() => {
-    if (loadingUser || !user || cart.length === 0 || paidItems) return;
+    if (method !== 'paypal' || !paypalConfigured || cart.length === 0 || paidItems) return;
 
     const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-    if (!clientId) return; // PayPal not configured yet - just don't show the option.
 
     function renderButtons() {
       const paypal = (window as any).paypal;
@@ -77,7 +81,6 @@ export default function CheckoutPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ paypalOrderId: data.orderID }),
             });
-            const result = await res.json();
 
             setPaying(false);
             setStatus('');
@@ -100,8 +103,6 @@ export default function CheckoutPage() {
           },
         })
         .render(paypalContainerRef.current);
-
-      setPaypalReady(true);
     }
 
     if ((window as any).paypal) {
@@ -113,12 +114,11 @@ export default function CheckoutPage() {
     script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
     script.onload = renderButtons;
     document.body.appendChild(script);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingUser, user, cart.length, paidItems]);
+  }, [method, paypalConfigured, cart, paidItems]);
 
   const total = cart.reduce((sum, item) => sum + item.price, 0);
 
-  const handlePay = async () => {
+  const handlePayTebex = async () => {
     setPaying(true);
     setPaymentFailed(false);
     setStatus('Preparing secure Tebex checkout...');
@@ -180,18 +180,23 @@ export default function CheckoutPage() {
       return;
     }
 
-    // The Tebex webhook can take a few seconds to confirm payment server-side.
-    // Retry briefly before showing a real error.
     if (attempt < 5) {
-      setDownloadStatus((s) => ({ ...s, [productId]: 'Confirming payment with Tebex...' }));
+      setDownloadStatus((s) => ({ ...s, [productId]: 'Confirming your payment...' }));
       setTimeout(() => handleDownload(productId, attempt + 1), 2500);
       return;
     }
 
     setDownloadStatus((s) => ({
       ...s,
-      [productId]: "Still confirming - check My Account in a moment, or contact support if this persists.",
+      [productId]: 'Still confirming - check My Account in a moment, or contact support if this persists.',
     }));
+  };
+
+  const retry = () => {
+    setPaymentFailed(false);
+    setStatus('');
+    if (method === 'tebex') handlePayTebex();
+    // For PayPal, the freshly re-rendered button is the retry path - nothing else to trigger.
   };
 
   if (loadingUser) {
@@ -263,10 +268,62 @@ export default function CheckoutPage() {
     );
   }
 
+  // Step 1: choose a payment method.
+  if (!method) {
+    return (
+      <div style={{ minHeight: 'calc(100vh - 73px)', background: '#000', color: '#fff', padding: '40px 20px', maxWidth: 700, margin: '0 auto' }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6 }}>Choose Payment Method</h1>
+        <p style={{ color: '#888', marginBottom: 32, fontSize: 14 }}>Select how you'd like to pay.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <button
+            onClick={() => setMethod('tebex')}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 20, cursor: 'pointer', color: '#fff', textAlign: 'left' }}
+          >
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>💳 Card / Apple Pay / More</div>
+              <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Secure checkout powered by Tebex</div>
+            </div>
+            <span style={{ color: '#ec4899', fontWeight: 700 }}>→</span>
+          </button>
+
+          {paypalConfigured && (
+            <button
+              onClick={() => setMethod('paypal')}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 20, cursor: 'pointer', color: '#fff', textAlign: 'left' }}
+            >
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>🅿️ PayPal</div>
+                <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Pay with your PayPal balance or card</div>
+              </div>
+              <span style={{ color: '#ec4899', fontWeight: 700 }}>→</span>
+            </button>
+          )}
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <Link href="/cart" style={{ color: '#888', fontSize: 13, textDecoration: 'none' }}>
+            ← Back to cart
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2: order summary + complete purchase with the chosen method.
   return (
     <div style={{ minHeight: 'calc(100vh - 73px)', background: '#000', color: '#fff', padding: '40px 20px', maxWidth: 700, margin: '0 auto' }}>
+      <button
+        onClick={() => { setMethod(null); setPaymentFailed(false); setStatus(''); }}
+        style={{ background: 'none', border: 'none', color: '#888', fontSize: 13, cursor: 'pointer', marginBottom: 16, padding: 0 }}
+      >
+        ← Change payment method
+      </button>
+
       <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6 }}>Confirm Your Order</h1>
-      <p style={{ color: '#888', marginBottom: 32, fontSize: 14 }}>Review your order, then pay securely with Tebex.</p>
+      <p style={{ color: '#888', marginBottom: 32, fontSize: 14 }}>
+        Paying with {method === 'tebex' ? 'Card / Apple Pay via Tebex' : 'PayPal'}.
+      </p>
 
       <div style={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 24, marginBottom: 24 }}>
         <h3 style={{ fontSize: 13, fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: 16 }}>
@@ -298,7 +355,7 @@ export default function CheckoutPage() {
           ))}
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 16, paddingTop: 16, display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800 }}>
-          <span>Total</span>
+          <span>Amount Due</span>
           <span style={{ color: '#ec4899' }}>${total.toFixed(2)}</span>
         </div>
       </div>
@@ -312,7 +369,7 @@ export default function CheckoutPage() {
           </p>
           <div style={{ display: 'flex', gap: 10 }}>
             <button
-              onClick={handlePay}
+              onClick={retry}
               style={{ flex: 1, background: '#ec4899', color: '#fff', border: 'none', padding: 14, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
             >
               Try Again
@@ -327,33 +384,29 @@ export default function CheckoutPage() {
             </a>
           </div>
         </div>
-      ) : (
+      ) : method === 'tebex' ? (
         <button
-          onClick={handlePay}
+          onClick={handlePayTebex}
           disabled={paying}
           style={{ width: '100%', background: '#ec4899', color: '#fff', padding: 16, borderRadius: 10, fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer' }}
         >
-          {paying ? 'Opening secure checkout...' : `Confirm & Pay $${total.toFixed(2)}`}
+          {paying ? 'Opening secure checkout...' : `Complete Purchase - $${total.toFixed(2)}`}
         </button>
+      ) : (
+        <div>
+          <p style={{ fontSize: 12, color: '#888', textAlign: 'center', marginBottom: 10 }}>
+            Click below to complete your purchase with PayPal.
+          </p>
+          <div ref={paypalContainerRef} />
+        </div>
       )}
 
       {status && (
         <p style={{ fontSize: 12, textAlign: 'center', marginTop: 16, color: '#f59e0b' }}>{status}</p>
       )}
 
-      {process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID && (
-        <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
-            <span style={{ fontSize: 11, color: '#666' }}>OR</span>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
-          </div>
-          <div ref={paypalContainerRef} />
-        </>
-      )}
-
       <p style={{ fontSize: 11, color: '#666', textAlign: 'center', marginTop: 16 }}>
-        Payment is processed securely by Tebex or PayPal. Your files unlock immediately after payment is confirmed.
+        Your files unlock immediately after payment is confirmed.
       </p>
     </div>
   );

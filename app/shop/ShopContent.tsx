@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
@@ -19,11 +19,13 @@ interface Product {
 
 export default function ShopContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = (searchParams.get('q') || '').toLowerCase().trim();
   const categoryFilter = (searchParams.get('category') || '').toLowerCase().trim();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [justAdded, setJustAdded] = useState<Product | null>(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -44,7 +46,7 @@ export default function ShopContent() {
     const existingCart = JSON.parse(localStorage.getItem('qmz_cart') || '[]');
     const updatedCart = [...existingCart, product];
     localStorage.setItem('qmz_cart', JSON.stringify(updatedCart));
-    alert(`${product.name} added to cart!`);
+    setJustAdded(product);
   };
 
   const filteredProducts = products
@@ -117,6 +119,37 @@ export default function ShopContent() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {justAdded && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+          onClick={() => setJustAdded(null)}
+        >
+          <div
+            style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 32, maxWidth: 380, width: '90%', textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>Added to cart</h3>
+            <p style={{ color: '#888', fontSize: 13, marginBottom: 24 }}>{justAdded.name}</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => router.push('/checkout')}
+                style={{ background: '#ec4899', color: '#fff', border: 'none', padding: 14, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Checkout
+              </button>
+              <button
+                onClick={() => { setJustAdded(null); router.push('/shop'); }}
+                style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: 14, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
