@@ -43,7 +43,7 @@ export default function SettingsPage() {
 
         <div style={card}>
           <h2>Payments</h2>
-          <p style={text}>PayPal, Cash App, Stripe and future payment methods.</p>
+          <p style={text}>Checkout is powered by Tebex. Configure your store's API keys and webhook in Vercel/Tebex directly.</p>
         </div>
 
         <div style={card}>

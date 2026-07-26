@@ -30,6 +30,19 @@ export default function ProductsPage() {
     }
   }
 
+  async function handleDelete(id: string, name: string) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+    const { error } = await supabase.from('products').delete().eq('id', id);
+
+    if (error) {
+      alert(`Failed to delete: ${error.message}`);
+      return;
+    }
+
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+  }
+
   return (
     <main
       style={{
@@ -116,7 +129,7 @@ export default function ProductsPage() {
                   <td style={td}>${product.price}</td>
 
                   <td style={td}>
-                    {product.published ? (
+                    {product.status === "published" ? (
                       <span
                         style={{
                           color: "#22c55e",
@@ -124,6 +137,15 @@ export default function ProductsPage() {
                         }}
                       >
                         Published
+                      </span>
+                    ) : product.status === "coming_soon" ? (
+                      <span
+                        style={{
+                          color: "#3b82f6",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Coming Soon
                       </span>
                     ) : (
                       <span
@@ -156,6 +178,7 @@ export default function ProductsPage() {
                       </Link>
 
                       <button
+                        onClick={() => handleDelete(product.id, product.name)}
                         style={{
                           background: "transparent",
                           border: "none",
