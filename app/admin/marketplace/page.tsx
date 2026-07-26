@@ -33,6 +33,8 @@ export default function AdminMarketplace() {
   const [coverPreview, setCoverPreview] = useState('');
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [zipFileName, setZipFileName] = useState('');
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -66,6 +68,7 @@ export default function AdminMarketplace() {
       form.append('tags', tags);
       form.append('tebex_package_id', tebexPackageId);
       if (coverFile) form.append('cover', coverFile);
+      galleryFiles.forEach((f) => form.append('gallery', f));
       if (zipFile) form.append('zip', zipFile);
 
       const res = await adminFetch('/api/admin/products', { method: 'POST', body: form });
@@ -92,6 +95,8 @@ export default function AdminMarketplace() {
       setFreeProduct(false);
 
       setCoverFile(null);
+      setGalleryFiles([]);
+      setGalleryPreviews([]);
       setZipFile(null);
       setZipFileName('');
       setTebexPackageId('');
@@ -486,6 +491,39 @@ export default function AdminMarketplace() {
               This file is only released after a verified purchase.
             </small>
           </div>
+        </div>
+
+        <div>
+          <p style={{ marginBottom: 8, fontWeight: 700 }}>Gallery Images (optional, multiple)</p>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => {
+              const files = Array.from(e.target.files || []);
+              if (files.length === 0) return;
+              setGalleryFiles(files);
+              setGalleryPreviews(files.map((f) => URL.createObjectURL(f)));
+            }}
+          />
+
+          {galleryPreviews.length > 0 && (
+            <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+              {galleryPreviews.map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt=""
+                  style={{ width: 100, height: 70, objectFit: 'cover', borderRadius: 8, border: '1px solid #2a2a2a' }}
+                />
+              ))}
+            </div>
+          )}
+
+          <small style={{ color: '#777', marginTop: 8, display: 'block' }}>
+            Additional screenshots shown on the product page.
+          </small>
         </div>
 
         <button

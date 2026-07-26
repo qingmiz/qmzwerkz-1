@@ -53,9 +53,9 @@ export default function Footer() {
             <h3 className="mb-4 font-bold text-white">Community</h3>
 
             <div className="space-y-2 text-sm">
-              <a href="#" className="block text-purple-400 hover:text-purple-300">Discord</a>
-              <a href="#" className="block text-purple-400 hover:text-purple-300">Terms</a>
-              <a href="#" className="block text-purple-400 hover:text-purple-300">Privacy</a>
+              <a href="https://discord.com/channels/1458550712119070925/1458550715130581238" target="_blank" rel="noreferrer" className="block text-purple-400 hover:text-purple-300">Discord</a>
+              <Link href="/terms" className="block text-purple-400 hover:text-purple-300">Terms</Link>
+              <Link href="/privacy" className="block text-purple-400 hover:text-purple-300">Privacy</Link>
             </div>
           </div>
 

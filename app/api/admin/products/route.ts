@@ -17,6 +17,18 @@ async function uploadZip(admin: any, file: File | null) {
   return zipName; // private bucket path, not a public URL
 }
 
+async function uploadGallery(admin: any, files: File[]) {
+  if (files.length === 0) return undefined;
+  const urls: string[] = [];
+  for (const file of files) {
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+    const { error } = await admin.storage.from('product-images').upload(fileName, file);
+    if (error) throw error;
+    urls.push(admin.storage.from('product-images').getPublicUrl(fileName).data.publicUrl);
+  }
+  return urls;
+}
+
 function parseFields(form: FormData) {
   const get = (key: string) => (form.get(key) as string) || '';
   const bool = (key: string) => form.get(key) === 'true';
@@ -52,12 +64,14 @@ export async function POST(request: Request) {
     const fields = parseFields(form);
     const coverFile = form.get('cover') as File | null;
     const zipFile = form.get('zip') as File | null;
+    const galleryFiles = form.getAll('gallery').filter((f) => f instanceof File && f.size > 0) as File[];
 
     const cover_image = await uploadCover(admin, coverFile && coverFile.size > 0 ? coverFile : null);
     const zip_file = await uploadZip(admin, zipFile && zipFile.size > 0 ? zipFile : null);
+    const gallery_images = await uploadGallery(admin, galleryFiles);
 
     const { error: insertError } = await admin.from('products').insert([
-      { ...fields, cover_image: cover_image ?? '', zip_file: zip_file ?? '' },
+      { ...fields, cover_image: cover_image ?? '', zip_file: zip_file ?? '', gallery_images: gallery_images ?? [] },
     ]);
 
     if (insertError) throw insertError;
@@ -80,13 +94,21 @@ export async function PATCH(request: Request) {
     const fields = parseFields(form);
     const coverFile = form.get('cover') as File | null;
     const zipFile = form.get('zip') as File | null;
+    const galleryFiles = form.getAll('gallery').filter((f) => f instanceof File && f.size > 0) as File[];
 
     const cover_image = await uploadCover(admin, coverFile && coverFile.size > 0 ? coverFile : null);
     const zip_file = await uploadZip(admin, zipFile && zipFile.size > 0 ? zipFile : null);
+    const newGalleryUrls = await uploadGallery(admin, galleryFiles);
 
     const updates: Record<string, unknown> = { ...fields };
     if (cover_image) updates.cover_image = cover_image;
     if (zip_file) updates.zip_file = zip_file;
+
+    if (newGalleryUrls) {
+      const { data: existing } = await admin.from('products').select('gallery_images').eq('id', id).maybeSingle();
+      const existingUrls = Array.isArray(existing?.gallery_images) ? existing.gallery_images : [];
+      updates.gallery_images = [...existingUrls, ...newGalleryUrls];
+    }
 
     const { error: updateError } = await admin.from('products').update(updates).eq('id', id);
     if (updateError) throw updateError;
