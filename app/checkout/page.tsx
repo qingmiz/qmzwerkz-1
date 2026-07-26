@@ -18,6 +18,7 @@ export default function CheckoutPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paying, setPaying] = useState(false);
   const [status, setStatus] = useState('');
+  const [paymentFailed, setPaymentFailed] = useState(false);
   const [paidItems, setPaidItems] = useState<CartItem[] | null>(null);
   const [downloadStatus, setDownloadStatus] = useState<Record<string, string>>({});
 
@@ -43,6 +44,7 @@ export default function CheckoutPage() {
 
   const handlePay = async () => {
     setPaying(true);
+    setPaymentFailed(false);
     setStatus('Preparing secure Tebex checkout...');
 
     try {
@@ -74,7 +76,8 @@ export default function CheckoutPage() {
       });
 
       Tebex.checkout.on('payment:error', () => {
-        setStatus('Payment failed or was declined. No charge was made.');
+        setStatus('');
+        setPaymentFailed(true);
         setPaying(false);
       });
 
@@ -224,13 +227,39 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <button
-        onClick={handlePay}
-        disabled={paying}
-        style={{ width: '100%', background: '#ec4899', color: '#fff', padding: 16, borderRadius: 10, fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer' }}
-      >
-        {paying ? 'Opening secure checkout...' : `Confirm & Pay $${total.toFixed(2)}`}
-      </button>
+      {paymentFailed ? (
+        <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid #ef4444', borderRadius: 12, padding: 24, textAlign: 'center' }}>
+          <div style={{ fontSize: 28 }}>⚠️</div>
+          <p style={{ color: '#ef4444', fontWeight: 800, margin: '10px 0 4px' }}>Payment failed</p>
+          <p style={{ color: '#999', fontSize: 13, marginBottom: 20 }}>
+            No charge was made. You can try again with the same or a different payment method.
+          </p>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={handlePay}
+              style={{ flex: 1, background: '#ec4899', color: '#fff', border: 'none', padding: 14, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+            >
+              Try Again
+            </button>
+            <a
+              href="https://discord.com/channels/1458550712119070925/1458550715130581238"
+              target="_blank"
+              rel="noreferrer"
+              style={{ flex: 1, background: '#5865F2', color: '#fff', padding: 14, borderRadius: 8, fontWeight: 700, textDecoration: 'none', textAlign: 'center' }}
+            >
+              Visit Discord
+            </a>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={handlePay}
+          disabled={paying}
+          style={{ width: '100%', background: '#ec4899', color: '#fff', padding: 16, borderRadius: 10, fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer' }}
+        >
+          {paying ? 'Opening secure checkout...' : `Confirm & Pay $${total.toFixed(2)}`}
+        </button>
+      )}
 
       {status && (
         <p style={{ fontSize: 12, textAlign: 'center', marginTop: 16, color: '#f59e0b' }}>{status}</p>
