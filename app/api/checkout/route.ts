@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
-import { createBasket, addPackageToBasket } from '@/lib/tebex';
+import { createBasket, addPackageToBasket, applyCouponToBasket } from '@/lib/tebex';
+import { validatePromoCode } from '@/lib/promo';
 
 // Starts a real Tebex checkout for the items in the user's cart.
-// Expects: { productIds: string[] }
+// Expects: { productIds: string[], promoCode?: string }
 export async function POST(request: Request) {
   try {
-    const { productIds } = (await request.json()) as { productIds: string[] };
+    const { productIds, promoCode } = (await request.json()) as { productIds: string[]; promoCode?: string };
 
     if (!Array.isArray(productIds) || productIds.length === 0) {
       return NextResponse.json({ error: 'No items provided.' }, { status: 400 });
@@ -42,6 +43,14 @@ export async function POST(request: Request) {
       );
     }
 
+    let validPromoCode: string | null = null;
+    if (promoCode) {
+      const result = await validatePromoCode(promoCode);
+      if (result.valid) validPromoCode = result.code!;
+      // If invalid, we just silently skip it here - the client already validates
+      // before letting the customer proceed, so this is a safety net, not the UX.
+    }
+
     const admin = createAdminClient();
 
     const { data: orders, error: orderError } = await admin
@@ -52,6 +61,7 @@ export async function POST(request: Request) {
           product_id: p.id,
           status: 'pending',
           payment_method: 'tebex',
+          promo_code: validPromoCode,
         }))
       )
       .select('id, product_id');
@@ -78,11 +88,20 @@ export async function POST(request: Request) {
       checkoutUrl = result.links.checkout || checkoutUrl;
     }
 
+    let couponApplied = false;
+    if (validPromoCode) {
+      // Tebex only recognizes coupons that ALSO exist in its own Control Panel.
+      // If it's not set up there, this fails gracefully and the customer still
+      // checks out at full price - they're not blocked.
+      const couponResult = await applyCouponToBasket(basket.ident, validPromoCode);
+      couponApplied = couponResult.applied;
+    }
+
     if (!checkoutUrl) {
       return NextResponse.json({ error: 'Tebex did not return a checkout link.' }, { status: 502 });
     }
 
-    return NextResponse.json({ checkoutUrl, ident: basket.ident });
+    return NextResponse.json({ checkoutUrl, ident: basket.ident, couponApplied });
   } catch (err: any) {
     console.error('Checkout error:', err);
     return NextResponse.json({ error: err.message ?? 'Checkout failed.' }, { status: 500 });

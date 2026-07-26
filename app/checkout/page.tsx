@@ -26,6 +26,11 @@ export default function CheckoutPage() {
   const [downloadStatus, setDownloadStatus] = useState<Record<string, string>>({});
   const paypalContainerRef = React.useRef<HTMLDivElement>(null);
 
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountPercent: number } | null>(null);
+  const [promoStatus, setPromoStatus] = useState('');
+  const [checkingPromo, setCheckingPromo] = useState(false);
+
   const paypalConfigured = !!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
   useEffect(() => {
@@ -66,7 +71,7 @@ export default function CheckoutPage() {
             const res = await fetch('/api/paypal/create-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ productIds: cart.map((item) => item.id) }),
+              body: JSON.stringify({ productIds: cart.map((item) => item.id), promoCode: appliedPromo?.code }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Could not start PayPal checkout.');
@@ -114,9 +119,38 @@ export default function CheckoutPage() {
     script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
     script.onload = renderButtons;
     document.body.appendChild(script);
-  }, [method, paypalConfigured, cart, paidItems]);
+  }, [method, paypalConfigured, cart, paidItems, appliedPromo]);
 
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+  const discountAmount = appliedPromo ? subtotal * (appliedPromo.discountPercent / 100) : 0;
+  const total = subtotal - discountAmount;
+
+  const applyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setCheckingPromo(true);
+    setPromoStatus('');
+
+    try {
+      const res = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoInput.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        setAppliedPromo(null);
+        setPromoStatus(data.error || 'Invalid code.');
+      } else {
+        setAppliedPromo({ code: data.code, discountPercent: data.discountPercent });
+        setPromoStatus('');
+      }
+    } catch {
+      setPromoStatus('Could not check that code - try again.');
+    } finally {
+      setCheckingPromo(false);
+    }
+  };
 
   const handlePayTebex = async () => {
     setPaying(true);
@@ -127,7 +161,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productIds: cart.map((item) => item.id) }),
+        body: JSON.stringify({ productIds: cart.map((item) => item.id), promoCode: appliedPromo?.code }),
       });
 
       const data = await res.json();
@@ -354,10 +388,63 @@ export default function CheckoutPage() {
             </div>
           ))}
         </div>
+
+        <div style={{ marginTop: 18 }}>
+          {appliedPromo ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(16,185,129,0.08)', border: '1px solid #10b981', borderRadius: 8, padding: '10px 14px' }}>
+              <span style={{ fontSize: 13, color: '#10b981', fontWeight: 700 }}>
+                🏷️ {appliedPromo.code} applied (-{appliedPromo.discountPercent}%)
+              </span>
+              <button
+                onClick={() => { setAppliedPromo(null); setPromoInput(''); }}
+                style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 12 }}
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value)}
+                placeholder="Promo code"
+                style={{ flex: 1, padding: '10px 12px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8, color: '#fff', fontSize: 13 }}
+              />
+              <button
+                onClick={applyPromo}
+                disabled={checkingPromo}
+                style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: '0 18px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+              >
+                {checkingPromo ? '...' : 'Apply'}
+              </button>
+            </div>
+          )}
+          {promoStatus && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 8 }}>{promoStatus}</p>}
+        </div>
+
+        {appliedPromo && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16, fontSize: 14, color: '#888' }}>
+            <span>Subtotal</span>
+            <span>${subtotal.toFixed(2)}</span>
+          </div>
+        )}
+        {appliedPromo && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 14, color: '#10b981' }}>
+            <span>Discount</span>
+            <span>-${discountAmount.toFixed(2)}</span>
+          </div>
+        )}
+
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 16, paddingTop: 16, display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800 }}>
           <span>Amount Due</span>
           <span style={{ color: '#ec4899' }}>${total.toFixed(2)}</span>
         </div>
+
+        {appliedPromo && method === 'tebex' && (
+          <p style={{ fontSize: 11, color: '#666', marginTop: 12 }}>
+            Note: for Tebex checkout, this discount only applies if a matching coupon exists in your Tebex store. If not, you'll be charged full price there - PayPal always applies it correctly.
+          </p>
+        )}
       </div>
 
       {paymentFailed ? (

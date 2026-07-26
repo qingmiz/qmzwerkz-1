@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { createPayPalOrder } from '@/lib/paypal';
+import { validatePromoCode } from '@/lib/promo';
 
 export async function POST(request: Request) {
   try {
-    const { productIds } = (await request.json()) as { productIds: string[] };
+    const { productIds, promoCode } = (await request.json()) as { productIds: string[]; promoCode?: string };
 
     if (!Array.isArray(productIds) || productIds.length === 0) {
       return NextResponse.json({ error: 'No items provided.' }, { status: 400 });
@@ -28,7 +29,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Could not find those products.' }, { status: 400 });
     }
 
-    const total = products.reduce((sum, p) => sum + Number(p.price || 0), 0);
+    let total = products.reduce((sum, p) => sum + Number(p.price || 0), 0);
+
+    let validPromoCode: string | null = null;
+    if (promoCode) {
+      const result = await validatePromoCode(promoCode);
+      if (result.valid) {
+        validPromoCode = result.code!;
+        total = total * (1 - result.discountPercent! / 100);
+      }
+    }
 
     const admin = createAdminClient();
 
@@ -40,6 +50,7 @@ export async function POST(request: Request) {
           product_id: p.id,
           status: 'pending',
           payment_method: 'paypal',
+          promo_code: validPromoCode,
         }))
       )
       .select('id');

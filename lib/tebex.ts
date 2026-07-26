@@ -60,6 +60,24 @@ export async function addPackageToBasket(basketIdent: string, packageId: number,
   return json.data as { ident: string; links: { checkout?: string } };
 }
 
+export async function applyCouponToBasket(basketIdent: string, couponCode: string) {
+  const token = getWebstoreToken();
+
+  const res = await fetch(`${HEADLESS_BASE}/accounts/${token}/baskets/${basketIdent}/coupons`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ coupon_code: couponCode }),
+  });
+
+  if (!res.ok) {
+    // Tebex only recognizes coupons that ALSO exist in its own Control Panel -
+    // a code that's valid in our own promo_codes table may not be set up there yet.
+    return { applied: false, error: await res.text() };
+  }
+
+  const json = await res.json();
+  return { applied: true, basket: json.data };
+}
 // Verifies the X-Tebex-Signature header: HMAC-SHA256(rawBody, webhookSecret).
 // IMPORTANT: rawBody must be the exact, unparsed request body string.
 export function verifyTebexWebhookSignature(rawBody: string, signatureHeader: string | null) {

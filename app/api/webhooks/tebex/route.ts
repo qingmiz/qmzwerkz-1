@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { verifyTebexWebhookSignature } from '@/lib/tebex';
+import { sendOrderConfirmationEmail } from '@/lib/email';
+import { incrementPromoUsage } from '@/lib/promo';
 
 // Tebex sends events here (configure at Tebex dashboard -> Webhooks -> Endpoints).
 // We only trust this payload after verifying the X-Tebex-Signature HMAC.
@@ -31,15 +33,35 @@ export async function POST(request: Request) {
   if (event.type === 'payment.completed') {
     const custom = event.subject?.custom ?? event.subject?.basket?.custom ?? {};
     const orderIds: string[] = custom.orderIds ?? [];
+    const userId: string | undefined = custom.userId;
     const transactionId: string | undefined = event.subject?.transaction_id ?? event.subject?.id;
 
     if (orderIds.length > 0) {
       const admin = createAdminClient();
 
-      await admin
+      const { data: completedOrders } = await admin
         .from('orders')
         .update({ status: 'completed', tebex_transaction_id: transactionId })
-        .in('id', orderIds);
+        .in('id', orderIds)
+        .select('product_id, promo_code');
+
+      if (completedOrders && completedOrders.length > 0) {
+        const promoCode = completedOrders.find((o) => o.promo_code)?.promo_code;
+        if (promoCode) await incrementPromoUsage(promoCode);
+
+        const { data: products } = await admin
+          .from('products')
+          .select('name, price')
+          .in('id', completedOrders.map((o) => o.product_id));
+
+        if (userId) {
+          const { data: userData } = await admin.auth.admin.getUserById(userId);
+          if (userData?.user?.email && products) {
+            const total = products.reduce((sum, p) => sum + Number(p.price || 0), 0);
+            await sendOrderConfirmationEmail(userData.user.email, products, total);
+          }
+        }
+      }
     }
   }
 

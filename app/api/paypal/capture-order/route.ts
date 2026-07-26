@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { capturePayPalOrder } from '@/lib/paypal';
+import { sendOrderConfirmationEmail } from '@/lib/email';
+import { incrementPromoUsage } from '@/lib/promo';
 
 export async function POST(request: Request) {
   try {
@@ -34,10 +36,27 @@ export async function POST(request: Request) {
       .update({ status: 'completed' })
       .eq('paypal_order_id', paypalOrderId)
       .eq('user_id', user.id)
-      .select('product_id');
+      .select('product_id, promo_code');
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    if (updatedOrders && updatedOrders.length > 0) {
+      const promoCode = updatedOrders.find((o) => o.promo_code)?.promo_code;
+      if (promoCode) await incrementPromoUsage(promoCode);
+
+      if (user.email) {
+        const { data: products } = await admin
+          .from('products')
+          .select('name, price')
+          .in('id', updatedOrders.map((o) => o.product_id));
+
+        if (products) {
+          const total = products.reduce((sum, p) => sum + Number(p.price || 0), 0);
+          await sendOrderConfirmationEmail(user.email, products, total);
+        }
+      }
     }
 
     return NextResponse.json({

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { notifyDiscordWinner } from '@/lib/discord-notify';
+import { sendClaimEmail } from '@/lib/email';
 
 const FALLBACK_PRIZES = [
   { label: 'FREE Head', weight: 10 },
@@ -123,6 +124,10 @@ export async function POST(request: Request) {
     claimCode,
     spinUrl: `${origin}/lucky-wheel`,
   });
+
+  if (user.email) {
+    await sendClaimEmail(user.email, claimCode, prize);
+  }
 
   // 10. Return the server-determined result.
   return NextResponse.json({ prize, claimCode, nextSpinAt: nextSpinAt.toISOString() });
