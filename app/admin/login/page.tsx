@@ -35,24 +35,29 @@ export default function AdminLogin() {
       return;
     }
 
-    const verifyRes = await fetch('/api/admin/verify-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: data.session?.access_token }),
-    });
+    try {
+      const verifyRes = await fetch('/api/admin/verify-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: data.session?.access_token }),
+      });
 
-    const verify = await verifyRes.json();
+      const verify = await verifyRes.json();
 
-    if (!verify.isAdmin) {
-      await supabase.auth.signOut();
+      if (!verify.isAdmin) {
+        await supabase.auth.signOut();
 
-      setError('You are not an admin.');
+        setError(verify.error || 'You are not an admin.');
+        setLoading(false);
+
+        return;
+      }
+
+      router.push('/admin/dashboard');
+    } catch (err: any) {
+      setError('Could not reach the server. Please try again.');
       setLoading(false);
-
-      return;
     }
-
-    router.push('/admin/dashboard');
   }
 
   return (

@@ -6,25 +6,33 @@ import { createAdminClient } from '@/lib/supabase-admin';
 // thereof) exist on admin_users. Takes the access_token from the client's
 // just-completed signInWithPassword call and resolves the real user from it.
 export async function POST(request: Request) {
-  const { accessToken } = await request.json();
+  try {
+    const { accessToken } = await request.json();
 
-  if (!accessToken) {
-    return NextResponse.json({ isAdmin: false, error: 'Missing access token.' }, { status: 400 });
+    if (!accessToken) {
+      return NextResponse.json({ isAdmin: false, error: 'Missing access token.' }, { status: 400 });
+    }
+
+    const admin = createAdminClient();
+
+    const { data: { user }, error: userError } = await admin.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return NextResponse.json({ isAdmin: false, error: 'Invalid session.' }, { status: 401 });
+    }
+
+    const { data: adminRow } = await admin
+      .from('admin_users')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    return NextResponse.json({ isAdmin: !!adminRow });
+  } catch (err: any) {
+    console.error('verify-login error:', err);
+    return NextResponse.json(
+      { isAdmin: false, error: err.message ?? 'Server misconfigured - check SUPABASE_SERVICE_ROLE_KEY is set.' },
+      { status: 500 }
+    );
   }
-
-  const admin = createAdminClient();
-
-  const { data: { user }, error: userError } = await admin.auth.getUser(accessToken);
-
-  if (userError || !user) {
-    return NextResponse.json({ isAdmin: false, error: 'Invalid session.' }, { status: 401 });
-  }
-
-  const { data: adminRow } = await admin
-    .from('admin_users')
-    .select('id')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  return NextResponse.json({ isAdmin: !!adminRow });
 }

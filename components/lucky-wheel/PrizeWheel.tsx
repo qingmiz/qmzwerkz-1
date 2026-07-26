@@ -50,7 +50,7 @@ export default function PrizeWheel({ spinning, targetIndex, onSpinEnd }: Props) 
   }, [spinning, targetIndex, onSpinEnd]);
 
   return (
-    <div className="relative mx-auto flex h-[340px] w-[340px] items-center justify-center sm:h-[420px] sm:w-[420px]">
+    <div className="relative mx-auto flex h-[360px] w-[360px] items-center justify-center sm:h-[460px] sm:w-[460px]">
 
       {/* Pointer */}
       <div
@@ -88,13 +88,13 @@ export default function PrizeWheel({ spinning, targetIndex, onSpinEnd }: Props) 
           return (
             <div
               key={prize.label}
-              className="absolute left-1/2 top-1/2 flex w-[90px] -translate-x-1/2 flex-col items-center text-center"
+              className="absolute left-1/2 top-1/2 flex w-[64px] -translate-x-1/2 flex-col items-center text-center"
               style={{
-                transform: `rotate(${angle}deg) translateY(-130px) rotate(${-angle}deg)`,
+                transform: `rotate(${angle}deg) translateY(-155px) rotate(${-angle}deg)`,
               }}
             >
-              <span className="text-2xl">{prize.icon}</span>
-              <span className="mt-1 text-[11px] font-bold leading-tight text-white">
+              <span className="text-lg leading-none">{prize.icon}</span>
+              <span className="mt-1 text-[8.5px] font-bold leading-[1.15] text-white">
                 {prize.label}
               </span>
             </div>

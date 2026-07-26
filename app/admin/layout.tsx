@@ -27,21 +27,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         return;
       }
 
-      const verifyRes = await fetch('/api/admin/verify-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: session.access_token }),
-      });
+      try {
+        const verifyRes = await fetch('/api/admin/verify-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: session.access_token }),
+        });
 
-      const verify = await verifyRes.json();
+        const verify = await verifyRes.json();
 
-      if (!verify.isAdmin) {
+        if (!verify.isAdmin) {
+          router.replace('/admin/login');
+          return;
+        }
+
+        setAuthorized(true);
+        setChecking(false);
+      } catch {
         router.replace('/admin/login');
-        return;
       }
-
-      setAuthorized(true);
-      setChecking(false);
     }
 
     checkAdmin();
