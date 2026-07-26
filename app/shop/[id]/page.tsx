@@ -52,6 +52,16 @@ export default function ProductDetailPage() {
     alert(`${prod.name} added to cart!`);
   };
 
+  const handleDownload = async (productId: string) => {
+    const res = await fetch(`/api/download/${productId}`);
+    if (res.ok) {
+      window.location.href = res.url;
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'You need to purchase this product first.');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: 'calc(100vh - 73px)', background: '#000', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -107,9 +117,12 @@ export default function ProductDetailPage() {
               Add to Cart
             </button>
             {product.zip_file && (
-              <a href={product.zip_file} download style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '14px 28px', borderRadius: '8px', fontSize: '14px', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                Instant Download
-              </a>
+              <button
+                onClick={() => handleDownload(product.id)}
+                style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '14px 28px', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                Download (requires purchase)
+              </button>
             )}
           </div>
 

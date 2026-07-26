@@ -31,10 +31,12 @@ export default function AdminMarketplace() {
   const [version, setVersion] = useState('1.0.0');
   const [changelog, setChangelog] = useState('');
   const [tags, setTags] = useState('');
+  const [tebexPackageId, setTebexPackageId] = useState('');
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState('');
   const [zipFile, setZipFile] = useState<File | null>(null);
+  const [zipFileName, setZipFileName] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -74,13 +76,15 @@ export default function AdminMarketplace() {
 
         if (error) throw error;
 
-        zipFileUrl = supabase.storage
-          .from('product-files')
-          .getPublicUrl(zipName).data.publicUrl;
+        // Store the PATH, not a public URL - the "product-files" bucket should
+        // be private. Downloads are only issued via /api/download after a
+        // verified purchase (see app/api/download/[productId]/route.ts).
+        zipFileUrl = zipName;
       }
 
-      const { error } = await supabase.from('products').insert([slug,
+      const { error } = await supabase.from('products').insert([
         {
+          slug,
           tags: tags
              .split(',')
              .map((tag) => tag.trim())
@@ -104,6 +108,8 @@ export default function AdminMarketplace() {
 
           version,
           changelog,
+
+          tebex_package_id: tebexPackageId ? parseInt(tebexPackageId, 10) : null,
 
           cover_image: coverImageUrl,
           zip_file: zipFileUrl,
@@ -131,6 +137,8 @@ export default function AdminMarketplace() {
 
       setCoverFile(null);
       setZipFile(null);
+      setZipFileName('');
+      setTebexPackageId('');
     } catch (err: any) {
       setStatus(err.message ?? 'Something went wrong.');
     } finally {
@@ -348,6 +356,36 @@ export default function AdminMarketplace() {
        </small>
      </div>
 
+        <div>
+         <label
+           style={{
+             display: 'block',
+             marginBottom: 8,
+             fontWeight: 700,
+           }}
+         >
+           Tebex Package ID
+         </label>
+
+       <input
+        type="text"
+        placeholder="e.g. 6234567"
+        value={tebexPackageId}
+        onChange={(e) => setTebexPackageId(e.target.value)}
+        style={inputStyle}
+      />
+
+       <small
+         style={{
+           color: '#777',
+           marginTop: 6,
+           display: 'block',
+         }}
+       >
+         From your Tebex dashboard → Packages. Required for checkout to work for this product.
+       </small>
+     </div>
+
         <div
           style={{
             display: 'grid',
@@ -400,7 +438,7 @@ export default function AdminMarketplace() {
           }}
         >
           <div>
-            <p style={{ marginBottom: 8 }}>Cover Image</p>
+            <p style={{ marginBottom: 8, fontWeight: 700 }}>Cover Image</p>
 
             <input
               type="file"
@@ -415,24 +453,6 @@ export default function AdminMarketplace() {
                 setCoverPreview(URL.createObjectURL(file));
               }}
             />
-          </div>
-
-          <div>
-            <p style={{ marginBottom: 8 }}>Cover Image</p>
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-
-                if (!file) return;
-
-                setCoverFile(file);
-
-                setCoverPreview(URL.createObjectURL(file));
-             }}
-           />
 
            {coverPreview && (
            <div
@@ -463,6 +483,53 @@ export default function AdminMarketplace() {
        </div>
     )}
   </div>
+
+          <div>
+            <p style={{ marginBottom: 8, fontWeight: 700 }}>Product ZIP</p>
+
+            <input
+              type="file"
+              accept=".zip"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+
+                if (!file) return;
+
+                setZipFile(file);
+                setZipFileName(file.name);
+              }}
+            />
+
+            {zipFileName && (
+              <div
+                style={{
+                  marginTop: 20,
+                  padding: '14px',
+                  background: '#161616',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: 10,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ fontSize: 13, color: '#fff' }}>{zipFileName}</span>
+                <span style={{ fontSize: 12, color: '#888' }}>
+                  {zipFile ? `${(zipFile.size / 1024 / 1024).toFixed(1)}MB` : ''}
+                </span>
+              </div>
+            )}
+
+            <small
+              style={{
+                color: '#777',
+                marginTop: 8,
+                display: 'block',
+              }}
+            >
+              This file is only released after a verified purchase.
+            </small>
+          </div>
         </div>
 
         <button

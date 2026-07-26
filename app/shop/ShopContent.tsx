@@ -48,6 +48,16 @@ export default function ShopContent() {
     alert(`${product.name} added to cart!`);
   };
 
+  const handleDownload = async (productId: string) => {
+    const res = await fetch(`/api/download/${productId}`);
+    if (res.ok) {
+      window.location.href = res.url;
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'You need to purchase this product first.');
+    }
+  };
+
   const filteredProducts = query
     ? products.filter((p) =>
         [p.name, p.category, p.short_description]
@@ -92,9 +102,12 @@ export default function ShopContent() {
                       Add to Cart
                     </button>
                     {p.zip_file && (
-                      <a href={p.zip_file} download style={{ background: '#ec4899', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', textDecoration: 'none' }}>
+                      <button
+                        onClick={() => handleDownload(p.id)}
+                        style={{ background: '#ec4899', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', border: 'none', cursor: 'pointer' }}
+                      >
                         Download
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>
