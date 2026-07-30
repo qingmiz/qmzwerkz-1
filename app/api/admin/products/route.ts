@@ -1,57 +1,32 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/require-admin';
 
-async function uploadCover(admin: any, file: File | null) {
-  if (!file) return undefined;
-  const fileName = `${Date.now()}-${file.name}`;
-  const { error } = await admin.storage.from('product-images').upload(fileName, file);
-  if (error) throw error;
-  return admin.storage.from('product-images').getPublicUrl(fileName).data.publicUrl;
-}
+// NOTE: file uploads (cover image, zip, gallery) are done directly from the
+// browser to Supabase Storage - NOT sent through this route - because Vercel
+// serverless functions have a hard request-size limit (~4.5MB) that most zip
+// files exceed. This route only ever receives small JSON: text fields plus
+// the resulting storage URLs/paths after the client has already uploaded.
 
-async function uploadZip(admin: any, file: File | null) {
-  if (!file) return undefined;
-  const zipName = `${Date.now()}-${file.name}`;
-  const { error } = await admin.storage.from('product-files').upload(zipName, file);
-  if (error) throw error;
-  return zipName; // private bucket path, not a public URL
-}
-
-async function uploadGallery(admin: any, files: File[]) {
-  if (files.length === 0) return undefined;
-  const urls: string[] = [];
-  for (const file of files) {
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
-    const { error } = await admin.storage.from('product-images').upload(fileName, file);
-    if (error) throw error;
-    urls.push(admin.storage.from('product-images').getPublicUrl(fileName).data.publicUrl);
-  }
-  return urls;
-}
-
-function parseFields(form: FormData) {
-  const get = (key: string) => (form.get(key) as string) || '';
-  const bool = (key: string) => form.get(key) === 'true';
-
+function parseFields(body: any) {
   return {
-    name: get('name'),
-    slug: get('slug'),
-    platform: get('platform'),
-    category: get('category'),
-    subcategory: get('subcategory'),
-    status: get('status'),
-    short_description: get('short_description'),
-    description: get('description'),
-    price: parseFloat(get('price')) || 0,
-    sale_price: get('sale_price') ? parseFloat(get('sale_price')) : null,
-    featured: bool('featured'),
-    bestseller: bool('bestseller'),
-    new_release: bool('new_release'),
-    free_product: bool('free_product'),
-    version: get('version'),
-    changelog: get('changelog'),
-    tags: get('tags').split(',').map((t) => t.trim()).filter(Boolean),
-    tebex_package_id: get('tebex_package_id') ? parseInt(get('tebex_package_id'), 10) : null,
+    name: body.name || '',
+    slug: body.slug || '',
+    platform: body.platform || '',
+    category: body.category || '',
+    subcategory: body.subcategory || '',
+    status: body.status || 'draft',
+    short_description: body.short_description || '',
+    description: body.description || '',
+    price: parseFloat(body.price) || 0,
+    sale_price: body.sale_price ? parseFloat(body.sale_price) : null,
+    featured: !!body.featured,
+    bestseller: !!body.bestseller,
+    new_release: !!body.new_release,
+    free_product: !!body.free_product,
+    version: body.version || '',
+    changelog: body.changelog || '',
+    tags: (body.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean),
+    tebex_package_id: body.tebex_package_id ? parseInt(body.tebex_package_id, 10) : null,
   };
 }
 
@@ -60,18 +35,16 @@ export async function POST(request: Request) {
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   try {
-    const form = await request.formData();
-    const fields = parseFields(form);
-    const coverFile = form.get('cover') as File | null;
-    const zipFile = form.get('zip') as File | null;
-    const galleryFiles = form.getAll('gallery').filter((f) => f instanceof File && f.size > 0) as File[];
-
-    const cover_image = await uploadCover(admin, coverFile && coverFile.size > 0 ? coverFile : null);
-    const zip_file = await uploadZip(admin, zipFile && zipFile.size > 0 ? zipFile : null);
-    const gallery_images = await uploadGallery(admin, galleryFiles);
+    const body = await request.json();
+    const fields = parseFields(body);
 
     const { error: insertError } = await admin.from('products').insert([
-      { ...fields, cover_image: cover_image ?? '', zip_file: zip_file ?? '', gallery_images: gallery_images ?? [] },
+      {
+        ...fields,
+        cover_image: body.cover_image || '',
+        zip_file: body.zip_file || '',
+        gallery_images: body.gallery_images || [],
+      },
     ]);
 
     if (insertError) throw insertError;
@@ -87,27 +60,20 @@ export async function PATCH(request: Request) {
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
   try {
-    const form = await request.formData();
-    const id = form.get('id') as string;
+    const body = await request.json();
+    const { id } = body;
     if (!id) return NextResponse.json({ error: 'id is required.' }, { status: 400 });
 
-    const fields = parseFields(form);
-    const coverFile = form.get('cover') as File | null;
-    const zipFile = form.get('zip') as File | null;
-    const galleryFiles = form.getAll('gallery').filter((f) => f instanceof File && f.size > 0) as File[];
-
-    const cover_image = await uploadCover(admin, coverFile && coverFile.size > 0 ? coverFile : null);
-    const zip_file = await uploadZip(admin, zipFile && zipFile.size > 0 ? zipFile : null);
-    const newGalleryUrls = await uploadGallery(admin, galleryFiles);
-
+    const fields = parseFields(body);
     const updates: Record<string, unknown> = { ...fields };
-    if (cover_image) updates.cover_image = cover_image;
-    if (zip_file) updates.zip_file = zip_file;
 
-    if (newGalleryUrls) {
+    if (body.cover_image) updates.cover_image = body.cover_image;
+    if (body.zip_file) updates.zip_file = body.zip_file;
+
+    if (body.new_gallery_images && body.new_gallery_images.length > 0) {
       const { data: existing } = await admin.from('products').select('gallery_images').eq('id', id).maybeSingle();
       const existingUrls = Array.isArray(existing?.gallery_images) ? existing.gallery_images : [];
-      updates.gallery_images = [...existingUrls, ...newGalleryUrls];
+      updates.gallery_images = [...existingUrls, ...body.new_gallery_images];
     }
 
     const { error: updateError } = await admin.from('products').update(updates).eq('id', id);

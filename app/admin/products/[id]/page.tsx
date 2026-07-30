@@ -36,29 +36,49 @@ export default function EditProductPage() {
     setStatus('Saving...');
 
     try {
-      const form = new FormData();
-      form.append('id', id);
-      form.append('name', product.name || '');
-      form.append('slug', product.slug || '');
-      form.append('platform', product.platform || 'FiveM');
-      form.append('category', product.category || '');
-      form.append('subcategory', product.subcategory || '');
-      form.append('status', product.status || 'draft');
-      form.append('short_description', product.short_description || '');
-      form.append('description', product.description || '');
-      form.append('price', String(product.price ?? ''));
-      form.append('sale_price', String(product.sale_price ?? ''));
-      form.append('featured', String(!!product.featured));
-      form.append('bestseller', String(!!product.bestseller));
-      form.append('new_release', String(!!product.new_release));
-      form.append('free_product', String(!!product.free_product));
-      form.append('version', product.version || '');
-      form.append('changelog', product.changelog || '');
-      form.append('tebex_package_id', String(product.tebex_package_id ?? ''));
-      if (coverFile) form.append('cover', coverFile);
-      if (zipFile) form.append('zip', zipFile);
+      let cover_image = '';
+      let zip_file = '';
 
-      const res = await adminFetch('/api/admin/products', { method: 'PATCH', body: form });
+      if (coverFile) {
+        const fileName = `${Date.now()}-${coverFile.name}`;
+        const { error: upErr } = await supabase.storage.from('product-images').upload(fileName, coverFile);
+        if (upErr) throw new Error(`Cover upload failed: ${upErr.message}`);
+        cover_image = supabase.storage.from('product-images').getPublicUrl(fileName).data.publicUrl;
+      }
+
+      if (zipFile) {
+        const zipName = `${Date.now()}-${zipFile.name}`;
+        const { error: upErr } = await supabase.storage.from('product-files').upload(zipName, zipFile);
+        if (upErr) throw new Error(`ZIP upload failed: ${upErr.message}`);
+        zip_file = zipName;
+      }
+
+      const res = await adminFetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          name: product.name || '',
+          slug: product.slug || '',
+          platform: product.platform || 'FiveM',
+          category: product.category || '',
+          subcategory: product.subcategory || '',
+          status: product.status || 'draft',
+          short_description: product.short_description || '',
+          description: product.description || '',
+          price: product.price,
+          sale_price: product.sale_price,
+          featured: !!product.featured,
+          bestseller: !!product.bestseller,
+          new_release: !!product.new_release,
+          free_product: !!product.free_product,
+          version: product.version || '',
+          changelog: product.changelog || '',
+          tebex_package_id: product.tebex_package_id,
+          cover_image,
+          zip_file,
+        }),
+      });
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || 'Failed to save.');

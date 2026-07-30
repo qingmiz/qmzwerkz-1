@@ -1,6 +1,7 @@
 'use client';
 
 import { adminFetch } from '@/lib/admin-fetch';
+import { supabase } from '@/lib/supabase';
 
 import React, { useState } from 'react';
 
@@ -48,30 +49,64 @@ export default function AdminMarketplace() {
     setStatus('Uploading assets...');
 
     try {
-      const form = new FormData();
-      form.append('name', name);
-      form.append('slug', slug);
-      form.append('platform', platform);
-      form.append('category', category);
-      form.append('subcategory', subcategory);
-      form.append('status', productStatus);
-      form.append('short_description', description);
-      form.append('description', fullDescription);
-      form.append('price', price);
-      form.append('sale_price', salePrice);
-      form.append('featured', String(featured));
-      form.append('bestseller', String(bestseller));
-      form.append('new_release', String(newRelease));
-      form.append('free_product', String(freeProduct));
-      form.append('version', version);
-      form.append('changelog', changelog);
-      form.append('tags', tags);
-      form.append('tebex_package_id', tebexPackageId);
-      if (coverFile) form.append('cover', coverFile);
-      galleryFiles.forEach((f) => form.append('gallery', f));
-      if (zipFile) form.append('zip', zipFile);
+      setStatus('Uploading files directly to storage...');
 
-      const res = await adminFetch('/api/admin/products', { method: 'POST', body: form });
+      let cover_image = '';
+      let zip_file = '';
+      let gallery_images: string[] = [];
+
+      if (coverFile) {
+        const fileName = `${Date.now()}-${coverFile.name}`;
+        const { error: upErr } = await supabase.storage.from('product-images').upload(fileName, coverFile);
+        if (upErr) throw new Error(`Cover upload failed: ${upErr.message}`);
+        cover_image = supabase.storage.from('product-images').getPublicUrl(fileName).data.publicUrl;
+      }
+
+      if (zipFile) {
+        const zipName = `${Date.now()}-${zipFile.name}`;
+        const { error: upErr } = await supabase.storage.from('product-files').upload(zipName, zipFile);
+        if (upErr) throw new Error(`ZIP upload failed: ${upErr.message}`);
+        zip_file = zipName; // private bucket path, not a public URL
+      }
+
+      if (galleryFiles.length > 0) {
+        for (const file of galleryFiles) {
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+          const { error: upErr } = await supabase.storage.from('product-images').upload(fileName, file);
+          if (upErr) throw new Error(`Gallery upload failed: ${upErr.message}`);
+          gallery_images.push(supabase.storage.from('product-images').getPublicUrl(fileName).data.publicUrl);
+        }
+      }
+
+      setStatus('Saving product...');
+
+      const res = await adminFetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          slug,
+          platform,
+          category,
+          subcategory,
+          status: productStatus,
+          short_description: description,
+          description: fullDescription,
+          price,
+          sale_price: salePrice,
+          featured,
+          bestseller,
+          new_release: newRelease,
+          free_product: freeProduct,
+          version,
+          changelog,
+          tags,
+          tebex_package_id: tebexPackageId,
+          cover_image,
+          zip_file,
+          gallery_images,
+        }),
+      });
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || 'Failed to publish product.');
