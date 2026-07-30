@@ -14,6 +14,7 @@ interface Product {
   price: number;
   cover_image?: string;
   gallery_images?: string[];
+  preview_video?: string;
   zip_file?: string;
   requirements?: string;
   installation_guide?: string;
@@ -208,6 +209,17 @@ export default function ProductDetailPage() {
                   }}
                 />
               ))}
+            </div>
+          )}
+
+          {product.preview_video && (
+            <div style={{ marginTop: 16 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#888', marginBottom: 8 }}>Preview Video</p>
+              <video
+                src={product.preview_video}
+                controls
+                style={{ width: '100%', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: '#000' }}
+              />
             </div>
           )}
         </div>

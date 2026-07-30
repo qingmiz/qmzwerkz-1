@@ -18,6 +18,7 @@ export default function EditProductPage() {
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [zipFile, setZipFile] = useState<File | null>(null);
+  const [previewVideoFile, setPreviewVideoFile] = useState<File | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -65,6 +66,30 @@ export default function EditProductPage() {
         zip_file = `r2:${urlData.key}`;
       }
 
+      let preview_video = '';
+      if (previewVideoFile) {
+        const urlRes = await adminFetch('/api/admin/r2-upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: previewVideoFile.name,
+            contentType: previewVideoFile.type || 'video/mp4',
+            type: 'video',
+          }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) throw new Error(urlData.error || 'Could not start video upload.');
+
+        const putRes = await fetch(urlData.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': previewVideoFile.type || 'video/mp4' },
+          body: previewVideoFile,
+        });
+        if (!putRes.ok) throw new Error('Video upload to storage failed.');
+
+        preview_video = urlData.publicUrl;
+      }
+
       const res = await adminFetch('/api/admin/products', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -89,6 +114,7 @@ export default function EditProductPage() {
           tebex_package_id: product.tebex_package_id,
           cover_image,
           zip_file,
+          preview_video,
         }),
       });
       const data = await res.json();
@@ -181,6 +207,13 @@ export default function EditProductPage() {
             <p style={{ marginBottom: 8, fontWeight: 700 }}>Replace ZIP</p>
             {product.zip_file && <p style={{ color: '#888', fontSize: 12, marginBottom: 10 }}>Current file on record</p>}
             <input type="file" accept=".zip" onChange={(e) => setZipFile(e.target.files?.[0] ?? null)} />
+          </div>
+          <div>
+            <p style={{ marginBottom: 8, fontWeight: 700 }}>Replace Preview Video</p>
+            {product.preview_video && (
+              <video src={product.preview_video} controls style={{ width: 160, borderRadius: 8, marginBottom: 10 }} />
+            )}
+            <input type="file" accept="video/*" onChange={(e) => setPreviewVideoFile(e.target.files?.[0] ?? null)} />
           </div>
         </div>
 

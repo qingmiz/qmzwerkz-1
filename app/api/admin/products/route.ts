@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         cover_image: body.cover_image || '',
         zip_file: body.zip_file || '',
         gallery_images: body.gallery_images || [],
+        preview_video: body.preview_video || null,
       },
     ]);
 
@@ -69,6 +70,7 @@ export async function PATCH(request: Request) {
 
     if (body.cover_image) updates.cover_image = body.cover_image;
     if (body.zip_file) updates.zip_file = body.zip_file;
+    if (body.preview_video) updates.preview_video = body.preview_video;
 
     if (body.new_gallery_images && body.new_gallery_images.length > 0) {
       const { data: existing } = await admin.from('products').select('gallery_images').eq('id', id).maybeSingle();

@@ -36,6 +36,8 @@ export default function AdminMarketplace() {
   const [zipFileName, setZipFileName] = useState('');
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [previewVideoFile, setPreviewVideoFile] = useState<File | null>(null);
+  const [previewVideoName, setPreviewVideoName] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -83,6 +85,31 @@ export default function AdminMarketplace() {
         zip_file = `r2:${urlData.key}`; // R2-hosted - see /api/download for how this is resolved
       }
 
+      let preview_video = '';
+      if (previewVideoFile) {
+        setStatus('Uploading preview video...');
+        const urlRes = await adminFetch('/api/admin/r2-upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: previewVideoFile.name,
+            contentType: previewVideoFile.type || 'video/mp4',
+            type: 'video',
+          }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) throw new Error(urlData.error || 'Could not start video upload.');
+
+        const putRes = await fetch(urlData.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': previewVideoFile.type || 'video/mp4' },
+          body: previewVideoFile,
+        });
+        if (!putRes.ok) throw new Error('Video upload to storage failed.');
+
+        preview_video = urlData.publicUrl;
+      }
+
       if (galleryFiles.length > 0) {
         for (const file of galleryFiles) {
           const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
@@ -119,6 +146,7 @@ export default function AdminMarketplace() {
           cover_image,
           zip_file,
           gallery_images,
+          preview_video,
         }),
       });
       const data = await res.json();
@@ -146,6 +174,8 @@ export default function AdminMarketplace() {
       setCoverFile(null);
       setGalleryFiles([]);
       setGalleryPreviews([]);
+      setPreviewVideoFile(null);
+      setPreviewVideoName('');
       setZipFile(null);
       setZipFileName('');
       setTebexPackageId('');
@@ -572,6 +602,45 @@ export default function AdminMarketplace() {
 
           <small style={{ color: '#777', marginTop: 8, display: 'block' }}>
             Additional screenshots shown on the product page.
+          </small>
+        </div>
+
+        <div>
+          <p style={{ marginBottom: 8, fontWeight: 700 }}>Preview Video (optional)</p>
+
+          <input
+            type="file"
+            accept="video/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setPreviewVideoFile(file);
+              setPreviewVideoName(file.name);
+            }}
+          />
+
+          {previewVideoName && (
+            <div
+              style={{
+                marginTop: 16,
+                padding: '14px',
+                background: '#161616',
+                border: '1px solid #2a2a2a',
+                borderRadius: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: 13, color: '#fff' }}>{previewVideoName}</span>
+              <span style={{ fontSize: 12, color: '#888' }}>
+                {previewVideoFile ? `${(previewVideoFile.size / 1024 / 1024).toFixed(1)}MB` : ''}
+              </span>
+            </div>
+          )}
+
+          <small style={{ color: '#777', marginTop: 8, display: 'block' }}>
+            A short demo/preview clip shown publicly on the product page (not gated behind purchase).
           </small>
         </div>
 

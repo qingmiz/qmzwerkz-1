@@ -31,6 +31,27 @@ function getBucket() {
   return bucket;
 }
 
+function getPreviewBucket() {
+  const bucket = process.env.R2_PREVIEW_BUCKET_NAME;
+  if (!bucket) throw new Error('R2_PREVIEW_BUCKET_NAME is not set.');
+  return bucket;
+}
+
+// Preview videos are public marketing content (unlike the paid ZIPs), so they
+// live in a separate public bucket and are served via a plain public URL -
+// no presigned GET / purchase check needed to view them.
+export function getR2PreviewPublicUrl(key: string) {
+  const base = process.env.R2_PREVIEW_PUBLIC_URL;
+  if (!base) throw new Error('R2_PREVIEW_PUBLIC_URL is not set.');
+  return `${base.replace(/\/$/, '')}/${key}`;
+}
+
+export async function getR2PreviewUploadUrl(key: string, contentType: string) {
+  const client = getClient();
+  const command = new PutObjectCommand({ Bucket: getPreviewBucket(), Key: key, ContentType: contentType });
+  return getSignedUrl(client, command, { expiresIn: 300 });
+}
+
 // Returns a presigned URL the browser can PUT the file to directly -
 // the file bytes never pass through our own server/Vercel function.
 export async function getR2UploadUrl(key: string, contentType: string) {
