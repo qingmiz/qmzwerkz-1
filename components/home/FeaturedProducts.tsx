@@ -74,7 +74,7 @@ export default function FeaturedProducts() {
                   <div className="h-44 w-full overflow-hidden bg-zinc-900">
                     <div
                       className="h-full w-full bg-cover bg-center transition duration-500 group-hover:scale-110"
-                      style={{ backgroundImage: `url(${p.cover_image})` }}
+                      style={{ backgroundImage: `url("${p.cover_image}")` }}
                     />
                   </div>
                 )}

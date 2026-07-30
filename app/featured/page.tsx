@@ -55,7 +55,7 @@ export default function FeaturedPage() {
               {p.cover_image && (
                 <div
                   className="h-44 w-full bg-zinc-900 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${p.cover_image})` }}
+                  style={{ backgroundImage: `url("${p.cover_image}")` }}
                 />
               )}
               <div className="p-5">

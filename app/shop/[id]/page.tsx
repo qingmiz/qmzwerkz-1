@@ -185,7 +185,7 @@ export default function ProductDetailPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px' }}>
         {/* Media / Gallery */}
         <div>
-          <div style={{ width: '100%', height: '380px', background: activeImage ? `url(${activeImage}) center/cover no-repeat #111` : '#111', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontWeight: 600 }}>
+          <div style={{ width: '100%', height: '380px', background: activeImage ? `url("${activeImage}") center/cover no-repeat #111` : '#111', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontWeight: 600 }}>
             {!activeImage && '[ No Preview Available ]'}
           </div>
 
@@ -199,7 +199,7 @@ export default function ProductDetailPage() {
                     width: 70,
                     height: 50,
                     borderRadius: 6,
-                    backgroundImage: `url(${src})`,
+                    backgroundImage: `url("${src}")`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     border: activeImage === src ? '2px solid #ec4899' : '1px solid rgba(255,255,255,0.15)',
@@ -328,7 +328,7 @@ export default function ProductDetailPage() {
                 style={{ display: 'block', background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden', textDecoration: 'none', color: '#fff' }}
               >
                 {p.cover_image && (
-                  <div style={{ height: 120, backgroundImage: `url(${p.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                  <div style={{ height: 120, backgroundImage: `url("${p.cover_image}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 )}
                 <div style={{ padding: 14 }}>
                   <h4 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px 0' }}>{p.name}</h4>

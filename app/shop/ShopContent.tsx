@@ -94,7 +94,7 @@ export default function ShopContent() {
           {filteredProducts.map((p) => (
             <div key={p.id || 'prod'} style={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               {p.cover_image && typeof p.cover_image === 'string' && (
-                <div style={{ width: '100%', height: '180px', background: `url(${p.cover_image}) center/cover no-repeat #161616` }} />
+                <div style={{ width: '100%', height: '180px', background: `url("${p.cover_image}") center/cover no-repeat #161616` }} />
               )}
               <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <span style={{ fontSize: '11px', fontWeight: '700', color: '#ec4899', textTransform: 'uppercase', marginBottom: '6px' }}>{p.category}</span>

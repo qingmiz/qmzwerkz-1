@@ -55,7 +55,7 @@ export default function OurWork() {
                 >
                   {item.image_url ? (
                     <div
-                      style={{ height: '220px', backgroundImage: `url(${item.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                      style={{ height: '220px', backgroundImage: `url("${item.image_url}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}
                     />
                   ) : (
                     <div style={{ height: '220px', background: 'linear-gradient(135deg,#1b1b1b,#2a2a2a)', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#666', fontSize: '20px' }}>
