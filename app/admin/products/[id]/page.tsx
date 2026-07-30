@@ -47,10 +47,22 @@ export default function EditProductPage() {
       }
 
       if (zipFile) {
-        const zipName = `${Date.now()}-${zipFile.name}`;
-        const { error: upErr } = await supabase.storage.from('product-files').upload(zipName, zipFile);
-        if (upErr) throw new Error(`ZIP upload failed: ${upErr.message}`);
-        zip_file = zipName;
+        const urlRes = await adminFetch('/api/admin/r2-upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName: zipFile.name, contentType: zipFile.type || 'application/zip' }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) throw new Error(urlData.error || 'Could not start ZIP upload.');
+
+        const putRes = await fetch(urlData.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': zipFile.type || 'application/zip' },
+          body: zipFile,
+        });
+        if (!putRes.ok) throw new Error('ZIP upload to storage failed.');
+
+        zip_file = `r2:${urlData.key}`;
       }
 
       const res = await adminFetch('/api/admin/products', {

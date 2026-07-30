@@ -63,10 +63,24 @@ export default function AdminMarketplace() {
       }
 
       if (zipFile) {
-        const zipName = `${Date.now()}-${zipFile.name}`;
-        const { error: upErr } = await supabase.storage.from('product-files').upload(zipName, zipFile);
-        if (upErr) throw new Error(`ZIP upload failed: ${upErr.message}`);
-        zip_file = zipName; // private bucket path, not a public URL
+        setStatus('Requesting upload URL...');
+        const urlRes = await adminFetch('/api/admin/r2-upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName: zipFile.name, contentType: zipFile.type || 'application/zip' }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) throw new Error(urlData.error || 'Could not start ZIP upload.');
+
+        setStatus('Uploading ZIP (this can take a while for large files)...');
+        const putRes = await fetch(urlData.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': zipFile.type || 'application/zip' },
+          body: zipFile,
+        });
+        if (!putRes.ok) throw new Error('ZIP upload to storage failed.');
+
+        zip_file = `r2:${urlData.key}`; // R2-hosted - see /api/download for how this is resolved
       }
 
       if (galleryFiles.length > 0) {

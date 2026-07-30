@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { getR2DownloadUrl } from '@/lib/r2';
 
 // Only issues a download link if the signed-in user has a completed order
 // for this product (or is an admin). The zip bucket itself should be PRIVATE
@@ -42,11 +43,22 @@ export async function GET(
   }
 
   // Backwards-compat: older products may have a full public URL stored.
-  // New uploads store just the storage path (see admin/marketplace).
   if (/^https?:\/\//.test(product.zip_file)) {
     return NextResponse.redirect(product.zip_file);
   }
 
+  // Large files (>50MB) are hosted on Cloudflare R2, stored with an "r2:" prefix.
+  if (product.zip_file.startsWith('r2:')) {
+    const key = product.zip_file.slice(3);
+    try {
+      const signedUrl = await getR2DownloadUrl(key);
+      return NextResponse.redirect(signedUrl);
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message ?? 'Could not generate download link.' }, { status: 500 });
+    }
+  }
+
+  // Otherwise it's a Supabase Storage path.
   const { data: signed, error } = await admin.storage
     .from('product-files')
     .createSignedUrl(product.zip_file, 60);
