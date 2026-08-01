@@ -46,6 +46,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
   const [activeImage, setActiveImage] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [related, setRelated] = useState<Product[]>([]);
 
@@ -106,6 +107,11 @@ export default function ProductDetailPage() {
     fetchProduct();
     fetchReviews();
     checkCanReview();
+
+    fetch('/api/is-admin')
+      .then((r) => r.json())
+      .then((d) => setIsAdmin(!!d.isAdmin))
+      .catch(() => {});
   }, [id]);
 
   const addToCart = (prod: Product) => {
@@ -255,9 +261,20 @@ export default function ProductDetailPage() {
             {product.zip_file && (
               <button
                 onClick={() => handleDownload(product.id)}
-                style={{ background: '#222', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '14px 28px', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                style={{
+                  background: isAdmin ? '#7c3aed' : '#222',
+                  color: '#fff',
+                  border: isAdmin ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                  padding: '14px 28px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
               >
-                Download (requires purchase)
+                {isAdmin ? 'Download (Admin Preview - No Purchase Required)' : 'Download (requires purchase)'}
               </button>
             )}
           </div>
