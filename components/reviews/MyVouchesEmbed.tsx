@@ -16,8 +16,8 @@ export default function MyVouchesEmbed({ className = '' }: { className?: string 
       style={{
         boxShadow:
           '0 0 0 1px rgba(168,85,247,0.15), 0 0 40px rgba(255,42,133,0.18), 0 0 90px rgba(168,85,247,0.10)',
-        // Reserve the iframe's height up front so there's no layout shift while it lazy-loads.
-        minHeight: 732,
+        // Reserve the iframe's exact height up front so there's no layout shift while it lazy-loads.
+        minHeight: 332,
       }}
     >
       {/* neon corner glows */}
@@ -29,15 +29,15 @@ export default function MyVouchesEmbed({ className = '' }: { className?: string 
         <iframe
           src="https://myvouch.es/api/qmz-client-reviews/vouches/embed"
           title="QMZ WERKZ verified client reviews"
-          width="100%"
-          height="700"
           loading="lazy"
           allow="clipboard-write"
+          frameBorder="0"
+          scrolling="no"
           style={{
+            width: '100%',
+            height: '300px',
             border: 'none',
             display: 'block',
-            width: '100%',
-            minHeight: '700px',
             background: 'transparent',
           }}
         />
