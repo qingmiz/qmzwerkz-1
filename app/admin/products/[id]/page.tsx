@@ -6,6 +6,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
+// Keep in sync with app/admin/marketplace/page.tsx (the create form).
+const FIVEM_CATEGORIES = ['Scripts', 'Skins', 'Road Mods', 'Custom Weapons'];
+const SKIN_SUBCATEGORIES = ['Faces', 'Tattoos'];
+const GENDERS = ['Male', 'Female'];
+
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
@@ -100,6 +105,7 @@ export default function EditProductPage() {
           platform: product.platform || 'FiveM',
           category: product.category || '',
           subcategory: product.subcategory || '',
+          gender: product.gender || '',
           status: product.status || 'draft',
           short_description: product.short_description || '',
           description: product.description || '',
@@ -148,15 +154,79 @@ export default function EditProductPage() {
         <input placeholder="Slug" value={product.slug || ''} onChange={(e) => set('slug', e.target.value)} style={inputStyle} />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 15 }}>
-          <select value={product.platform || 'FiveM'} onChange={(e) => set('platform', e.target.value)} style={inputStyle}>
+          <select
+            value={product.platform || 'FiveM'}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Reset category/subcategory/gender when switching platforms so a
+              // stale FiveM-only combo (e.g. category="Skins") can't get saved
+              // against a different platform.
+              setProduct((prev: any) => ({
+                ...prev,
+                platform: value,
+                category: value === 'FiveM' ? 'Scripts' : '',
+                subcategory: '',
+                gender: '',
+              }));
+            }}
+            style={inputStyle}
+          >
             <option>FiveM</option>
             <option>IMVU</option>
             <option>Second Life</option>
             <option>Roblox</option>
           </select>
-          <input placeholder="Category" value={product.category || ''} onChange={(e) => set('category', e.target.value)} style={inputStyle} />
-          <input placeholder="Subcategory" value={product.subcategory || ''} onChange={(e) => set('subcategory', e.target.value)} style={inputStyle} />
+
+          {product.platform === 'FiveM' ? (
+            <select
+              value={FIVEM_CATEGORIES.includes(product.category) ? product.category : 'Scripts'}
+              onChange={(e) => {
+                const value = e.target.value;
+                setProduct((prev: any) => ({ ...prev, category: value, subcategory: '', gender: '' }));
+              }}
+              style={inputStyle}
+            >
+              {FIVEM_CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          ) : (
+            <input placeholder="Category" value={product.category || ''} onChange={(e) => set('category', e.target.value)} style={inputStyle} />
+          )}
+
+          {product.platform === 'FiveM' && product.category === 'Skins' ? (
+            <select
+              value={SKIN_SUBCATEGORIES.includes(product.subcategory) ? product.subcategory : 'Faces'}
+              onChange={(e) => {
+                const value = e.target.value;
+                setProduct((prev: any) => ({ ...prev, subcategory: value, gender: '' }));
+              }}
+              style={inputStyle}
+            >
+              {SKIN_SUBCATEGORIES.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+          ) : product.platform !== 'FiveM' ? (
+            <input placeholder="Subcategory" value={product.subcategory || ''} onChange={(e) => set('subcategory', e.target.value)} style={inputStyle} />
+          ) : null}
         </div>
+
+        {product.platform === 'FiveM' && product.category === 'Skins' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Gender</label>
+            <select
+              value={GENDERS.includes(product.gender) ? product.gender : ''}
+              onChange={(e) => set('gender', e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Select gender...</option>
+              {GENDERS.map((g) => (
+                <option key={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
           <input placeholder="Price" type="number" value={product.price ?? ''} onChange={(e) => set('price', e.target.value)} style={inputStyle} />

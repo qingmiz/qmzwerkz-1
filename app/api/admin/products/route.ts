@@ -14,6 +14,7 @@ function parseFields(body: any) {
     platform: body.platform || '',
     category: body.category || '',
     subcategory: body.subcategory || '',
+    gender: body.gender || '',
     status: body.status || 'draft',
     short_description: body.short_description || '',
     description: body.description || '',
