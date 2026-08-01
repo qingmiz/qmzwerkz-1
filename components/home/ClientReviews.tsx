@@ -18,7 +18,7 @@ export default function ClientReviews() {
 
       <div
         ref={ref}
-        className={`relative mx-auto max-w-5xl text-center transition-all duration-700 ease-out ${
+        className={`relative mx-auto max-w-7xl text-center transition-all duration-700 ease-out ${
           visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
       >

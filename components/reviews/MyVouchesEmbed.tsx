@@ -17,7 +17,7 @@
 export default function MyVouchesEmbed({ className = '' }: { className?: string }) {
   return (
     <div
-      className={`relative mx-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-pink-500/30 bg-white/5 p-4 backdrop-blur-xl sm:p-6 ${className}`}
+      className={`relative mx-auto w-full max-w-7xl overflow-hidden rounded-3xl border border-pink-500/30 bg-white/5 p-4 backdrop-blur-xl sm:p-6 ${className}`}
       style={{
         boxShadow:
           '0 0 0 1px rgba(168,85,247,0.15), 0 0 50px rgba(255,42,133,0.22), 0 0 110px rgba(168,85,247,0.14)',
