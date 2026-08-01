@@ -62,6 +62,7 @@ export default function Navbar() {
           <Link href="/">Home</Link>
           <Link href="/shop">Shop</Link>
           <Link href="/about">About</Link>
+          <Link href="/reviews">Reviews</Link>
         </nav>
 
         <div className="flex items-center gap-4">
