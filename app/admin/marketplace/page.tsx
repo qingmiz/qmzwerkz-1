@@ -11,7 +11,9 @@ import React, { useState } from 'react';
 // fields, unchanged.
 const FIVEM_CATEGORIES = ['Scripts', 'Skins', 'Road Mods', 'Custom Weapons'];
 const SKIN_SUBCATEGORIES = ['Faces', 'Tattoos'];
-const GENDERS = ['Male', 'Female'];
+const GENDERS = ['Male', 'Female', 'LGBTQ'];
+// Only shown when gender === 'LGBTQ'.
+const LGBTQ_PRESENTATIONS = ['Fem-Masc', 'Masc-Fem'];
 
 export default function AdminMarketplace() {
   const [name, setName] = useState('');
@@ -20,6 +22,7 @@ export default function AdminMarketplace() {
   const [category, setCategory] = useState('Scripts');
   const [subcategory, setSubcategory] = useState('');
   const [gender, setGender] = useState('');
+  const [genderDetail, setGenderDetail] = useState('');
 
   const [description, setDescription] = useState('');
   const [fullDescription, setFullDescription] = useState('');
@@ -140,6 +143,7 @@ export default function AdminMarketplace() {
           category,
           subcategory,
           gender,
+          gender_detail: genderDetail,
           status: productStatus,
           short_description: description,
           description: fullDescription,
@@ -170,6 +174,7 @@ export default function AdminMarketplace() {
       setCategory('Scripts');
       setSubcategory('');
       setGender('');
+      setGenderDetail('');
       setDescription('');
       setFullDescription('');
       setPrice('');
@@ -292,6 +297,7 @@ export default function AdminMarketplace() {
               setCategory(value === 'FiveM' ? 'Scripts' : '');
               setSubcategory('');
               setGender('');
+              setGenderDetail('');
             }}
             style={inputStyle}
           >
@@ -308,6 +314,7 @@ export default function AdminMarketplace() {
                 setCategory(e.target.value);
                 setSubcategory('');
                 setGender('');
+                setGenderDetail('');
               }}
               style={inputStyle}
             >
@@ -330,6 +337,7 @@ export default function AdminMarketplace() {
               onChange={(e) => {
                 setSubcategory(e.target.value);
                 setGender('');
+                setGenderDetail('');
               }}
               style={inputStyle}
             >
@@ -352,12 +360,31 @@ export default function AdminMarketplace() {
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Gender</label>
             <select
               value={GENDERS.includes(gender) ? gender : ''}
-              onChange={(e) => setGender(e.target.value)}
+              onChange={(e) => {
+                setGender(e.target.value);
+                setGenderDetail('');
+              }}
               style={inputStyle}
             >
               <option value="">Select gender...</option>
               {GENDERS.map((g) => (
                 <option key={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {platform === 'FiveM' && category === 'Skins' && gender === 'LGBTQ' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Presentation</label>
+            <select
+              value={LGBTQ_PRESENTATIONS.includes(genderDetail) ? genderDetail : ''}
+              onChange={(e) => setGenderDetail(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Select presentation...</option>
+              {LGBTQ_PRESENTATIONS.map((p) => (
+                <option key={p}>{p}</option>
               ))}
             </select>
           </div>

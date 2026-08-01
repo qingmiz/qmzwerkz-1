@@ -9,7 +9,9 @@ import { supabase } from '@/lib/supabase';
 // Keep in sync with app/admin/marketplace/page.tsx (the create form).
 const FIVEM_CATEGORIES = ['Scripts', 'Skins', 'Road Mods', 'Custom Weapons'];
 const SKIN_SUBCATEGORIES = ['Faces', 'Tattoos'];
-const GENDERS = ['Male', 'Female'];
+const GENDERS = ['Male', 'Female', 'LGBTQ'];
+// Only shown when gender === 'LGBTQ'.
+const LGBTQ_PRESENTATIONS = ['Fem-Masc', 'Masc-Fem'];
 
 export default function EditProductPage() {
   const params = useParams();
@@ -106,6 +108,7 @@ export default function EditProductPage() {
           category: product.category || '',
           subcategory: product.subcategory || '',
           gender: product.gender || '',
+          gender_detail: product.gender_detail || '',
           status: product.status || 'draft',
           short_description: product.short_description || '',
           description: product.description || '',
@@ -167,6 +170,7 @@ export default function EditProductPage() {
                 category: value === 'FiveM' ? 'Scripts' : '',
                 subcategory: '',
                 gender: '',
+                gender_detail: '',
               }));
             }}
             style={inputStyle}
@@ -182,7 +186,7 @@ export default function EditProductPage() {
               value={FIVEM_CATEGORIES.includes(product.category) ? product.category : 'Scripts'}
               onChange={(e) => {
                 const value = e.target.value;
-                setProduct((prev: any) => ({ ...prev, category: value, subcategory: '', gender: '' }));
+                setProduct((prev: any) => ({ ...prev, category: value, subcategory: '', gender: '', gender_detail: '' }));
               }}
               style={inputStyle}
             >
@@ -199,7 +203,7 @@ export default function EditProductPage() {
               value={SKIN_SUBCATEGORIES.includes(product.subcategory) ? product.subcategory : 'Faces'}
               onChange={(e) => {
                 const value = e.target.value;
-                setProduct((prev: any) => ({ ...prev, subcategory: value, gender: '' }));
+                setProduct((prev: any) => ({ ...prev, subcategory: value, gender: '', gender_detail: '' }));
               }}
               style={inputStyle}
             >
@@ -217,12 +221,31 @@ export default function EditProductPage() {
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Gender</label>
             <select
               value={GENDERS.includes(product.gender) ? product.gender : ''}
-              onChange={(e) => set('gender', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setProduct((prev: any) => ({ ...prev, gender: value, gender_detail: '' }));
+              }}
               style={inputStyle}
             >
               <option value="">Select gender...</option>
               {GENDERS.map((g) => (
                 <option key={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {product.platform === 'FiveM' && product.category === 'Skins' && product.gender === 'LGBTQ' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Presentation</label>
+            <select
+              value={LGBTQ_PRESENTATIONS.includes(product.gender_detail) ? product.gender_detail : ''}
+              onChange={(e) => set('gender_detail', e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Select presentation...</option>
+              {LGBTQ_PRESENTATIONS.map((p) => (
+                <option key={p}>{p}</option>
               ))}
             </select>
           </div>
