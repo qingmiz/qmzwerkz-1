@@ -163,11 +163,13 @@ export default function EditProductPage() {
               const value = e.target.value;
               // Reset category/subcategory/gender when switching platforms so a
               // stale FiveM-only combo (e.g. category="Skins") can't get saved
-              // against a different platform.
+              // against a different platform. Category is left blank on purpose
+              // (not defaulted to "Scripts") so every product requires an
+              // explicit category choice instead of silently inheriting one.
               setProduct((prev: any) => ({
                 ...prev,
                 platform: value,
-                category: value === 'FiveM' ? 'Scripts' : '',
+                category: '',
                 subcategory: '',
                 gender: '',
                 gender_detail: '',
@@ -183,13 +185,15 @@ export default function EditProductPage() {
 
           {product.platform === 'FiveM' ? (
             <select
-              value={FIVEM_CATEGORIES.includes(product.category) ? product.category : 'Scripts'}
+              value={FIVEM_CATEGORIES.includes(product.category) ? product.category : ''}
               onChange={(e) => {
                 const value = e.target.value;
                 setProduct((prev: any) => ({ ...prev, category: value, subcategory: '', gender: '', gender_detail: '' }));
               }}
+              required
               style={inputStyle}
             >
+              <option value="">Select category...</option>
               {FIVEM_CATEGORIES.map((c) => (
                 <option key={c}>{c}</option>
               ))}
@@ -200,13 +204,15 @@ export default function EditProductPage() {
 
           {product.platform === 'FiveM' && product.category === 'Skins' ? (
             <select
-              value={SKIN_SUBCATEGORIES.includes(product.subcategory) ? product.subcategory : 'Faces'}
+              value={SKIN_SUBCATEGORIES.includes(product.subcategory) ? product.subcategory : ''}
               onChange={(e) => {
                 const value = e.target.value;
                 setProduct((prev: any) => ({ ...prev, subcategory: value, gender: '', gender_detail: '' }));
               }}
+              required
               style={inputStyle}
             >
+              <option value="">Select type...</option>
               {SKIN_SUBCATEGORIES.map((s) => (
                 <option key={s}>{s}</option>
               ))}

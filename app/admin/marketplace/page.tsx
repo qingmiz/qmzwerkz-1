@@ -19,7 +19,7 @@ export default function AdminMarketplace() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [platform, setPlatform] = useState('FiveM');
-  const [category, setCategory] = useState('Scripts');
+  const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [gender, setGender] = useState('');
   const [genderDetail, setGenderDetail] = useState('');
@@ -171,7 +171,7 @@ export default function AdminMarketplace() {
 
       setName('');
       setPlatform('FiveM');
-      setCategory('Scripts');
+      setCategory('');
       setSubcategory('');
       setGender('');
       setGenderDetail('');
@@ -293,8 +293,10 @@ export default function AdminMarketplace() {
               setPlatform(value);
               // Reset category/subcategory/gender when switching platforms so a
               // stale FiveM-only combo (e.g. category="Skins") can't get saved
-              // against a different platform.
-              setCategory(value === 'FiveM' ? 'Scripts' : '');
+              // against a different platform. Category is left blank on purpose
+              // (not defaulted to "Scripts") so every product requires an
+              // explicit category choice instead of silently inheriting one.
+              setCategory('');
               setSubcategory('');
               setGender('');
               setGenderDetail('');
@@ -309,15 +311,17 @@ export default function AdminMarketplace() {
 
           {platform === 'FiveM' ? (
             <select
-              value={FIVEM_CATEGORIES.includes(category) ? category : 'Scripts'}
+              value={FIVEM_CATEGORIES.includes(category) ? category : ''}
               onChange={(e) => {
                 setCategory(e.target.value);
                 setSubcategory('');
                 setGender('');
                 setGenderDetail('');
               }}
+              required
               style={inputStyle}
             >
+              <option value="">Select category...</option>
               {FIVEM_CATEGORIES.map((c) => (
                 <option key={c}>{c}</option>
               ))}
@@ -333,14 +337,16 @@ export default function AdminMarketplace() {
 
           {platform === 'FiveM' && category === 'Skins' ? (
             <select
-              value={SKIN_SUBCATEGORIES.includes(subcategory) ? subcategory : 'Faces'}
+              value={SKIN_SUBCATEGORIES.includes(subcategory) ? subcategory : ''}
               onChange={(e) => {
                 setSubcategory(e.target.value);
                 setGender('');
                 setGenderDetail('');
               }}
+              required
               style={inputStyle}
             >
+              <option value="">Select type...</option>
               {SKIN_SUBCATEGORIES.map((s) => (
                 <option key={s}>{s}</option>
               ))}
