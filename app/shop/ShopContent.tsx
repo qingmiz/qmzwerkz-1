@@ -20,9 +20,12 @@ interface Product {
   created_at?: string;
 }
 
-// FiveM > Skins > Faces/Tattoos > Male/Female/LGBTQ -> Fem-Masc/Masc-Fem.
+// Platform -> FiveM > Skins > Faces/Tattoos > Male/Female/LGBTQ -> Fem-Masc/Masc-Fem.
 // These only drive the optional pill filters below - they never replace the
 // existing substring category/platform match, so old links keep working.
+const PLATFORMS = ['FiveM', 'IMVU', 'Other', 'Second Life', 'Roblox'];
+const COMING_SOON_PLATFORMS = ['Second Life', 'Roblox'];
+const KNOWN_PLATFORMS = ['fivem', 'imvu', 'second life', 'roblox'];
 const FIVEM_CATEGORIES = ['Skins', 'Scripts', 'Road Mods', 'Custom Weapons'];
 const SKIN_SUBCATEGORIES = ['Faces', 'Tattoos'];
 const GENDERS = ['Male', 'Female', 'LGBTQ'];
@@ -33,15 +36,18 @@ export default function ShopContent() {
   const router = useRouter();
   const query = (searchParams.get('q') || '').toLowerCase().trim();
   const categoryFilter = (searchParams.get('category') || '').toLowerCase().trim();
+  const platformFilter = (searchParams.get('platform') || '').toLowerCase().trim();
   const subcategoryFilter = (searchParams.get('subcategory') || '').toLowerCase().trim();
   const genderFilter = (searchParams.get('gender') || '').toLowerCase().trim();
   const genderDetailFilter = (searchParams.get('gender_detail') || '').toLowerCase().trim();
 
   // Raw (non-lowercased) values, used only to highlight the active pill and
   // to decide which rows of pills to show.
+  const rawPlatform = searchParams.get('platform') || '';
   const rawCategory = searchParams.get('category') || '';
   const rawSubcategory = searchParams.get('subcategory') || '';
   const rawGender = searchParams.get('gender') || '';
+  const selectedPlatform = PLATFORMS.find((p) => p.toLowerCase() === rawPlatform.toLowerCase()) || '';
   const selectedCategory = FIVEM_CATEGORIES.find((c) => c.toLowerCase() === rawCategory.toLowerCase()) || '';
   const selectedSubcategory = SKIN_SUBCATEGORIES.find((s) => s.toLowerCase() === rawSubcategory.toLowerCase()) || '';
   const selectedGender = GENDERS.find((g) => g.toLowerCase() === rawGender.toLowerCase()) || '';
@@ -60,6 +66,9 @@ export default function ShopContent() {
     router.push(qs ? `/shop?${qs}` : '/shop');
   }
 
+  function selectPlatform(p: string) {
+    setParams({ platform: p || undefined, category: undefined, subcategory: undefined, gender: undefined, gender_detail: undefined });
+  }
   function selectCategory(cat: string) {
     setParams({ category: cat || undefined, subcategory: undefined, gender: undefined, gender_detail: undefined });
   }
@@ -111,6 +120,12 @@ export default function ShopContent() {
             .some((field) => field!.toLowerCase().includes(categoryFilter))
         : true
     )
+    .filter((p) => {
+      if (!platformFilter) return true;
+      const productPlatform = (p.platform || '').toLowerCase();
+      if (platformFilter === 'other') return !KNOWN_PLATFORMS.includes(productPlatform);
+      return productPlatform === platformFilter;
+    })
     .filter((p) => (subcategoryFilter ? (p.subcategory || '').toLowerCase() === subcategoryFilter : true))
     .filter((p) => (genderFilter ? (p.gender || '').toLowerCase() === genderFilter : true))
     .filter((p) => (genderDetailFilter ? (p.gender_detail || '').toLowerCase() === genderDetailFilter : true));
@@ -122,6 +137,8 @@ export default function ShopContent() {
         <p style={{ color: '#888888', fontSize: '14px', margin: '0 0 20px 0' }}>
           {query
             ? `Showing results for "${searchParams.get('q')}"`
+            : selectedPlatform
+            ? `Platform: ${selectedPlatform}`
             : categoryFilter
             ? `Category: ${searchParams.get('category')}`
             : 'Browse available FiveM assets and custom releases.'}
@@ -129,13 +146,24 @@ export default function ShopContent() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <PillRow
-            label="Category"
-            options={FIVEM_CATEGORIES}
-            selected={selectedCategory}
-            onSelect={selectCategory}
+            label="Platform"
+            options={PLATFORMS}
+            selected={selectedPlatform}
+            onSelect={selectPlatform}
+            optionLabels={Object.fromEntries(COMING_SOON_PLATFORMS.map((p) => [p, `${p} (Soon)`]))}
+            mutedOptions={COMING_SOON_PLATFORMS}
           />
 
-          {selectedCategory === 'Skins' && (
+          {selectedPlatform === 'FiveM' && (
+            <PillRow
+              label="Category"
+              options={FIVEM_CATEGORIES}
+              selected={selectedCategory}
+              onSelect={selectCategory}
+            />
+          )}
+
+          {selectedPlatform === 'FiveM' && selectedCategory === 'Skins' && (
             <PillRow
               label="Type"
               options={SKIN_SUBCATEGORIES}
@@ -144,7 +172,7 @@ export default function ShopContent() {
             />
           )}
 
-          {selectedCategory === 'Skins' && (selectedSubcategory === 'Faces' || selectedSubcategory === 'Tattoos') && (
+          {selectedPlatform === 'FiveM' && selectedCategory === 'Skins' && (selectedSubcategory === 'Faces' || selectedSubcategory === 'Tattoos') && (
             <PillRow
               label="Gender"
               options={GENDERS}
@@ -253,11 +281,15 @@ function PillRow({
   options,
   selected,
   onSelect,
+  optionLabels,
+  mutedOptions,
 }: {
   label: string;
   options: string[];
   selected: string;
   onSelect: (value: string) => void;
+  optionLabels?: Record<string, string>;
+  mutedOptions?: string[];
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -280,24 +312,27 @@ function PillRow({
         >
           All
         </button>
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => onSelect(opt)}
-            style={{
-              background: selected === opt ? '#ec4899' : '#151515',
-              color: '#fff',
-              border: `1px solid ${selected === opt ? '#ec4899' : 'rgba(255,255,255,0.1)'}`,
-              padding: '6px 14px',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: '700',
-              cursor: 'pointer',
-            }}
-          >
-            {opt}
-          </button>
-        ))}
+        {options.map((opt) => {
+          const isMuted = mutedOptions?.includes(opt);
+          return (
+            <button
+              key={opt}
+              onClick={() => onSelect(opt)}
+              style={{
+                background: selected === opt ? '#ec4899' : '#151515',
+                color: isMuted && selected !== opt ? '#666' : '#fff',
+                border: `1px solid ${selected === opt ? '#ec4899' : 'rgba(255,255,255,0.1)'}`,
+                padding: '6px 14px',
+                borderRadius: '999px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer',
+              }}
+            >
+              {optionLabels?.[opt] || opt}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

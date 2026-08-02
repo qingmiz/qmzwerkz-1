@@ -1,12 +1,12 @@
 export default function Categories() {
   const categories = [
-    { title: "FiveM", icon: "🚗" },
-    { title: "Skins", icon: "🎭" },
-    { title: "IMVU", icon: "💎" },
-    { title: "Web Development", icon: "💻" },
-    { title: "Custom Weapons", icon: "🔫" },
-    { title: "Road Mods", icon: "🛣️" },
-    { title: "Maps & MLOs", icon: "🏙️" },
+    { title: "FiveM", icon: "🚗", href: "/shop?platform=FiveM" },
+    { title: "Skins", icon: "🎭", href: "/shop?platform=FiveM&category=Skins" },
+    { title: "IMVU", icon: "💎", href: "/shop?platform=IMVU" },
+    { title: "Web Development", icon: "💻", href: "/shop?category=Web%20Development" },
+    { title: "Custom Weapons", icon: "🔫", href: "/shop?platform=FiveM&category=Custom%20Weapons" },
+    { title: "Road Mods", icon: "🛣️", href: "/shop?platform=FiveM&category=Road%20Mods" },
+    { title: "Maps & MLOs", icon: "🏙️", href: "/shop?category=Maps%20%26%20MLOs" },
   ];
 
   return (
@@ -51,7 +51,7 @@ export default function Categories() {
           {categories.map((cat) => (
             <a
               key={cat.title}
-              href={`/shop?category=${encodeURIComponent(cat.title)}`}
+              href={cat.href}
               style={{
                 background: "#151515",
                 border: "1px solid #262626",
