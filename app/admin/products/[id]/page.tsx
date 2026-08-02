@@ -6,6 +6,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
+// Keep in sync with app/admin/marketplace/page.tsx (the create form).
+const FIVEM_CATEGORIES = ['Scripts', 'Skins', 'Road Mods', 'Custom Weapons'];
+const SKIN_SUBCATEGORIES = ['Faces', 'Tattoos'];
+const GENDERS = ['Male', 'Female', 'LGBTQ'];
+// Only shown when gender === 'LGBTQ'.
+const LGBTQ_PRESENTATIONS = ['Fem-Masc', 'Masc-Fem'];
+
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
@@ -100,6 +107,8 @@ export default function EditProductPage() {
           platform: product.platform || 'FiveM',
           category: product.category || '',
           subcategory: product.subcategory || '',
+          gender: product.gender || '',
+          gender_detail: product.gender_detail || '',
           status: product.status || 'draft',
           short_description: product.short_description || '',
           description: product.description || '',
@@ -148,15 +157,105 @@ export default function EditProductPage() {
         <input placeholder="Slug" value={product.slug || ''} onChange={(e) => set('slug', e.target.value)} style={inputStyle} />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 15 }}>
-          <select value={product.platform || 'FiveM'} onChange={(e) => set('platform', e.target.value)} style={inputStyle}>
+          <select
+            value={product.platform || 'FiveM'}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Reset category/subcategory/gender when switching platforms so a
+              // stale FiveM-only combo (e.g. category="Skins") can't get saved
+              // against a different platform. Category is left blank on purpose
+              // (not defaulted to "Scripts") so every product requires an
+              // explicit category choice instead of silently inheriting one.
+              setProduct((prev: any) => ({
+                ...prev,
+                platform: value,
+                category: '',
+                subcategory: '',
+                gender: '',
+                gender_detail: '',
+              }));
+            }}
+            style={inputStyle}
+          >
             <option>FiveM</option>
             <option>IMVU</option>
             <option>Second Life</option>
             <option>Roblox</option>
           </select>
-          <input placeholder="Category" value={product.category || ''} onChange={(e) => set('category', e.target.value)} style={inputStyle} />
-          <input placeholder="Subcategory" value={product.subcategory || ''} onChange={(e) => set('subcategory', e.target.value)} style={inputStyle} />
+
+          {product.platform === 'FiveM' ? (
+            <select
+              value={FIVEM_CATEGORIES.includes(product.category) ? product.category : ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setProduct((prev: any) => ({ ...prev, category: value, subcategory: '', gender: '', gender_detail: '' }));
+              }}
+              required
+              style={inputStyle}
+            >
+              <option value="">Select category...</option>
+              {FIVEM_CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          ) : (
+            <input placeholder="Category" value={product.category || ''} onChange={(e) => set('category', e.target.value)} style={inputStyle} />
+          )}
+
+          {product.platform === 'FiveM' && product.category === 'Skins' ? (
+            <select
+              value={SKIN_SUBCATEGORIES.includes(product.subcategory) ? product.subcategory : ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setProduct((prev: any) => ({ ...prev, subcategory: value, gender: '', gender_detail: '' }));
+              }}
+              required
+              style={inputStyle}
+            >
+              <option value="">Select type...</option>
+              {SKIN_SUBCATEGORIES.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+          ) : product.platform !== 'FiveM' ? (
+            <input placeholder="Subcategory" value={product.subcategory || ''} onChange={(e) => set('subcategory', e.target.value)} style={inputStyle} />
+          ) : null}
         </div>
+
+        {product.platform === 'FiveM' && product.category === 'Skins' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Gender</label>
+            <select
+              value={GENDERS.includes(product.gender) ? product.gender : ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setProduct((prev: any) => ({ ...prev, gender: value, gender_detail: '' }));
+              }}
+              style={inputStyle}
+            >
+              <option value="">Select gender...</option>
+              {GENDERS.map((g) => (
+                <option key={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {product.platform === 'FiveM' && product.category === 'Skins' && product.gender === 'LGBTQ' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Presentation</label>
+            <select
+              value={LGBTQ_PRESENTATIONS.includes(product.gender_detail) ? product.gender_detail : ''}
+              onChange={(e) => set('gender_detail', e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Select presentation...</option>
+              {LGBTQ_PRESENTATIONS.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
           <input placeholder="Price" type="number" value={product.price ?? ''} onChange={(e) => set('price', e.target.value)} style={inputStyle} />

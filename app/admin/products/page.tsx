@@ -8,6 +8,10 @@ import { supabase } from "@/lib/supabase";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [platformFilter, setPlatformFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [subcategoryFilter, setSubcategoryFilter] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
 
   useEffect(() => {
     loadProducts();
@@ -44,6 +48,41 @@ export default function ProductsPage() {
 
     setProducts((prev) => prev.filter((p) => p.id !== id));
   }
+
+  const platforms = Array.from(new Set(products.map((p) => p.platform).filter(Boolean))).sort();
+  const categories = Array.from(
+    new Set(
+      products
+        .filter((p) => (platformFilter ? p.platform === platformFilter : true))
+        .map((p) => p.category)
+        .filter(Boolean)
+    )
+  ).sort();
+  const subcategories = Array.from(
+    new Set(
+      products
+        .filter((p) => (platformFilter ? p.platform === platformFilter : true))
+        .filter((p) => (categoryFilter ? p.category === categoryFilter : true))
+        .map((p) => p.subcategory)
+        .filter(Boolean)
+    )
+  ).sort();
+  const genders = Array.from(
+    new Set(
+      products
+        .filter((p) => (platformFilter ? p.platform === platformFilter : true))
+        .filter((p) => (categoryFilter ? p.category === categoryFilter : true))
+        .filter((p) => (subcategoryFilter ? p.subcategory === subcategoryFilter : true))
+        .map((p) => p.gender)
+        .filter(Boolean)
+    )
+  ).sort();
+
+  const filteredProducts = products
+    .filter((p) => (platformFilter ? p.platform === platformFilter : true))
+    .filter((p) => (categoryFilter ? p.category === categoryFilter : true))
+    .filter((p) => (subcategoryFilter ? p.subcategory === subcategoryFilter : true))
+    .filter((p) => (genderFilter ? p.gender === genderFilter : true));
 
   return (
     <main
@@ -87,6 +126,77 @@ export default function ProductsPage() {
         </Link>
       </div>
 
+      {products.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            flexWrap: "wrap",
+            marginBottom: "20px",
+          }}
+        >
+          <select
+            value={platformFilter}
+            onChange={(e) => {
+              setPlatformFilter(e.target.value);
+              setCategoryFilter("");
+              setSubcategoryFilter("");
+              setGenderFilter("");
+            }}
+            style={selectStyle}
+          >
+            <option value="">All Platforms</option>
+            {platforms.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setSubcategoryFilter("");
+              setGenderFilter("");
+            }}
+            style={selectStyle}
+          >
+            <option value="">All Categories</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          {subcategories.length > 0 && (
+            <select
+              value={subcategoryFilter}
+              onChange={(e) => {
+                setSubcategoryFilter(e.target.value);
+                setGenderFilter("");
+              }}
+              style={selectStyle}
+            >
+              <option value="">All Types</option>
+              {subcategories.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          )}
+
+          {genders.length > 0 && (
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+              style={selectStyle}
+            >
+              <option value="">All Genders</option>
+              {genders.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+
       <div
         style={{
           background: "#151515",
@@ -122,8 +232,17 @@ export default function ProductsPage() {
                 <td style={td}>-</td>
                 <td style={td}>-</td>
               </tr>
+            ) : filteredProducts.length === 0 ? (
+              <tr>
+                <td style={td}>No products match the selected filters.</td>
+                <td style={td}>-</td>
+                <td style={td}>-</td>
+                <td style={td}>-</td>
+                <td style={td}>-</td>
+                <td style={td}>-</td>
+              </tr>
             ) : (
-              products.map((product) => (
+              filteredProducts.map((product) => (
                 <tr key={product.id}>
                   <td style={td}>{product.name}</td>
                   <td style={td}>{product.platform}</td>
@@ -212,4 +331,14 @@ const th: CSSProperties = {
 const td: CSSProperties = {
   padding: "16px",
   borderTop: "1px solid #2b2b2b",
+};
+
+const selectStyle: CSSProperties = {
+  background: "#151515",
+  color: "#fff",
+  border: "1px solid #2b2b2b",
+  borderRadius: "10px",
+  padding: "10px 14px",
+  fontSize: "13px",
+  fontWeight: "600",
 };

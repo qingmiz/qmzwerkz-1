@@ -5,12 +5,24 @@ import { supabase } from '@/lib/supabase';
 
 import React, { useState } from 'react';
 
+// FiveM category taxonomy. Skins is the only category with subcategories,
+// and Faces/Tattoos are the only subcategories that differentiate by
+// gender. Other platforms (IMVU, etc.) keep free-text category/subcategory
+// fields, unchanged.
+const FIVEM_CATEGORIES = ['Scripts', 'Skins', 'Road Mods', 'Custom Weapons'];
+const SKIN_SUBCATEGORIES = ['Faces', 'Tattoos'];
+const GENDERS = ['Male', 'Female', 'LGBTQ'];
+// Only shown when gender === 'LGBTQ'.
+const LGBTQ_PRESENTATIONS = ['Fem-Masc', 'Masc-Fem'];
+
 export default function AdminMarketplace() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [platform, setPlatform] = useState('FiveM');
-  const [category, setCategory] = useState('Scripts');
+  const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
+  const [gender, setGender] = useState('');
+  const [genderDetail, setGenderDetail] = useState('');
 
   const [description, setDescription] = useState('');
   const [fullDescription, setFullDescription] = useState('');
@@ -130,6 +142,8 @@ export default function AdminMarketplace() {
           platform,
           category,
           subcategory,
+          gender,
+          gender_detail: genderDetail,
           status: productStatus,
           short_description: description,
           description: fullDescription,
@@ -157,8 +171,10 @@ export default function AdminMarketplace() {
 
       setName('');
       setPlatform('FiveM');
-      setCategory('Scripts');
+      setCategory('');
       setSubcategory('');
+      setGender('');
+      setGenderDetail('');
       setDescription('');
       setFullDescription('');
       setPrice('');
@@ -272,7 +288,19 @@ export default function AdminMarketplace() {
         >
           <select
             value={platform}
-            onChange={(e) => setPlatform(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setPlatform(value);
+              // Reset category/subcategory/gender when switching platforms so a
+              // stale FiveM-only combo (e.g. category="Skins") can't get saved
+              // against a different platform. Category is left blank on purpose
+              // (not defaulted to "Scripts") so every product requires an
+              // explicit category choice instead of silently inheriting one.
+              setCategory('');
+              setSubcategory('');
+              setGender('');
+              setGenderDetail('');
+            }}
             style={inputStyle}
           >
             <option>FiveM</option>
@@ -281,20 +309,92 @@ export default function AdminMarketplace() {
             <option>Roblox</option>
           </select>
 
-          <input
-            placeholder="Category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            style={inputStyle}
-          />
+          {platform === 'FiveM' ? (
+            <select
+              value={FIVEM_CATEGORIES.includes(category) ? category : ''}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setSubcategory('');
+                setGender('');
+                setGenderDetail('');
+              }}
+              required
+              style={inputStyle}
+            >
+              <option value="">Select category...</option>
+              {FIVEM_CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              placeholder="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              style={inputStyle}
+            />
+          )}
 
-          <input
-            placeholder="Subcategory"
-            value={subcategory}
-            onChange={(e) => setSubcategory(e.target.value)}
-            style={inputStyle}
-          />
+          {platform === 'FiveM' && category === 'Skins' ? (
+            <select
+              value={SKIN_SUBCATEGORIES.includes(subcategory) ? subcategory : ''}
+              onChange={(e) => {
+                setSubcategory(e.target.value);
+                setGender('');
+                setGenderDetail('');
+              }}
+              required
+              style={inputStyle}
+            >
+              <option value="">Select type...</option>
+              {SKIN_SUBCATEGORIES.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+          ) : platform !== 'FiveM' ? (
+            <input
+              placeholder="Subcategory"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+              style={inputStyle}
+            />
+          ) : null}
         </div>
+
+        {platform === 'FiveM' && category === 'Skins' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Gender</label>
+            <select
+              value={GENDERS.includes(gender) ? gender : ''}
+              onChange={(e) => {
+                setGender(e.target.value);
+                setGenderDetail('');
+              }}
+              style={inputStyle}
+            >
+              <option value="">Select gender...</option>
+              {GENDERS.map((g) => (
+                <option key={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {platform === 'FiveM' && category === 'Skins' && gender === 'LGBTQ' && (
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Presentation</label>
+            <select
+              value={LGBTQ_PRESENTATIONS.includes(genderDetail) ? genderDetail : ''}
+              onChange={(e) => setGenderDetail(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Select presentation...</option>
+              {LGBTQ_PRESENTATIONS.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <input
           placeholder="Price"

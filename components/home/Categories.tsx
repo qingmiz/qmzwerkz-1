@@ -1,6 +1,7 @@
 export default function Categories() {
   const categories = [
     { title: "FiveM", icon: "🚗" },
+    { title: "Skins", icon: "🎭" },
     { title: "IMVU", icon: "💎" },
     { title: "Web Development", icon: "💻" },
     { title: "Custom Weapons", icon: "🔫" },
