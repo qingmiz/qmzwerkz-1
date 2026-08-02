@@ -122,13 +122,13 @@ export default function ShopContent() {
     )
     .filter((p) => {
       if (!platformFilter) return true;
-      const productPlatform = (p.platform || '').toLowerCase();
+      const productPlatform = (p.platform || '').toLowerCase().trim();
       if (platformFilter === 'other') return !KNOWN_PLATFORMS.includes(productPlatform);
-      return productPlatform === platformFilter;
+      return productPlatform === platformFilter || productPlatform.includes(platformFilter);
     })
-    .filter((p) => (subcategoryFilter ? (p.subcategory || '').toLowerCase() === subcategoryFilter : true))
-    .filter((p) => (genderFilter ? (p.gender || '').toLowerCase() === genderFilter : true))
-    .filter((p) => (genderDetailFilter ? (p.gender_detail || '').toLowerCase() === genderDetailFilter : true));
+    .filter((p) => (subcategoryFilter ? (p.subcategory || '').toLowerCase().trim() === subcategoryFilter : true))
+    .filter((p) => (genderFilter ? (p.gender || '').toLowerCase().trim() === genderFilter : true))
+    .filter((p) => (genderDetailFilter ? (p.gender_detail || '').toLowerCase().trim() === genderDetailFilter : true));
 
   return (
     <div style={{ minHeight: 'calc(100vh - 73px)', padding: '40px', maxWidth: '1200px', margin: '0 auto', background: '#000', color: '#fff' }}>
