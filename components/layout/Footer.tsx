@@ -56,6 +56,7 @@ export default function Footer() {
               <a href="https://discord.com/channels/1458550712119070925/1458550715130581238" target="_blank" rel="noreferrer" className="block text-purple-400 hover:text-purple-300">Discord</a>
               <Link href="/terms" className="block text-purple-400 hover:text-purple-300">Terms</Link>
               <Link href="/privacy" className="block text-purple-400 hover:text-purple-300">Privacy</Link>
+              <Link href="/refund-policy" className="block text-purple-400 hover:text-purple-300">Refund Policy</Link>
             </div>
           </div>
 

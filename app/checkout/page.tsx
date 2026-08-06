@@ -511,7 +511,11 @@ export default function CheckoutPage() {
       )}
 
       <p style={{ fontSize: 11, color: '#666', textAlign: 'center', marginTop: 16 }}>
-        Your files unlock immediately after payment is confirmed.
+        Your files unlock immediately after payment is confirmed. All sales are final -{' '}
+        <Link href="/refund-policy" style={{ color: '#888', textDecoration: 'underline' }}>
+          see our Refund Policy
+        </Link>
+        .
       </p>
     </div>
   );
