@@ -86,7 +86,7 @@ export default function AccountPage() {
   return (
     <div style={{ minHeight: 'calc(100vh - 73px)', padding: '40px', maxWidth: '1000px', margin: '0 auto', background: '#000', color: '#fff' }}>
       <header style={{ marginBottom: '32px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '20px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 6px 0' }}>QMZ WERKZ // Creator Portal</h1>
+        <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 6px 0' }}>My Account</h1>
         <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>Signed in as <span style={{ color: '#fff' }}>{user.email}</span></p>
       </header>
 
