@@ -161,7 +161,7 @@ export default function LuckyWheelPage() {
                   Shop Now
                 </Link>
                 <p className="mt-4 text-xs text-zinc-500">
-                  This code is single-use and applies automatically in the Promo Code field at checkout.
+                  This code is single-use, expires in 7 days, and applies automatically in the Promo Code field at checkout.
                 </p>
               </>
             ) : (

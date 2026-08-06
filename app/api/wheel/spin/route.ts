@@ -132,12 +132,14 @@ export async function POST(request: Request) {
   const autoApplied = !!(autoDiscountPercent || autoDiscountAmount);
 
   if (autoApplied) {
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await admin.from('promo_codes').insert({
       code: claimCode,
       discount_percent: autoDiscountPercent,
       discount_amount: autoDiscountAmount,
       max_uses: 1,
       active: true,
+      expires_at: expiresAt.toISOString(),
     });
   }
 
