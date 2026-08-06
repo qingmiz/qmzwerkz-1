@@ -9,14 +9,20 @@ export interface WheelPrize {
 }
 
 export const DEFAULT_WHEEL_PRIZES: WheelPrize[] = [
-  { label: 'FREE Head', icon: '🆓', description: 'One free premade or custom head.' },
-  { label: '$5 Store Credit', icon: '💵', description: '$5 credit toward any purchase in the shop.' },
-  { label: '10% OFF', icon: '🏷️', description: 'Discount code for a future purchase.' },
-  { label: 'Random Tattoo', icon: '🖋️', description: 'One random tattoo from the collection.' },
-  { label: 'FREE Clothing', icon: '👕', description: 'One free clothing item or clothing pack.' },
-  { label: 'Premium Skin', icon: '⭐', description: 'A premium premade skin.' },
-  { label: 'Weapon Pack', icon: '🔫', description: 'One custom weapon pack.' },
-  { label: 'JACKPOT', icon: '🎉', description: 'The grand prize.' },
+  { label: '$5 OFF', icon: '🎉', description: 'Discount code for a future purchase.' },
+  { label: '$10 OFF', icon: '💸', description: 'Discount code for a future purchase.' },
+  { label: '$10 Shop Credit', icon: '💰', description: '$10 credit toward any purchase in the shop.' },
+  { label: 'Mystery Freebie', icon: '🎁', description: 'A surprise free item.' },
+  { label: 'FREE Premade Tattoo', icon: '✨', description: 'One free premade tattoo.' },
+  { label: 'FREE $10 Membership Access', icon: '💎', description: '$10 worth of membership access, free.' },
+  { label: 'FREE Premade Face', icon: '🎭', description: 'One free premade face.' },
+  { label: 'FREE Add-On', icon: '➕', description: 'Free add-on - tattoo, makeup, etc.' },
+  { label: '15% OFF', icon: '🛍️', description: 'Discount code for a future purchase.' },
+  { label: 'Pink Slip (FREE Custom)', icon: '🎟️', description: 'One free custom order.' },
+  { label: 'FREE Sleeve Tattoo Add-On', icon: '🖤', description: 'One free sleeve tattoo add-on.' },
+  { label: 'FREE Face Edit', icon: '🎨', description: 'One free face edit.' },
+  { label: 'BOGO 50% OFF Premades', icon: '🎊', description: 'Buy one premade, get one 50% off.' },
+  { label: '$20 Shop Credit (Rare)', icon: '💵', description: '$20 credit toward any purchase in the shop.' },
 ];
 
 interface Props {
@@ -49,7 +55,7 @@ export default function PrizeWheel({ prizes, spinning, targetIndex, onSpinEnd }:
   }, [spinning, targetIndex, onSpinEnd, segmentAngle]);
 
   return (
-    <div className="relative mx-auto flex h-[360px] w-[360px] items-center justify-center sm:h-[460px] sm:w-[460px]">
+    <div className="relative mx-auto flex h-[380px] w-[380px] items-center justify-center sm:h-[500px] sm:w-[500px]">
 
       {/* Pointer */}
       <div
@@ -84,16 +90,22 @@ export default function PrizeWheel({ prizes, spinning, targetIndex, onSpinEnd }:
       >
         {prizes.map((prize, i) => {
           const angle = i * segmentAngle + segmentAngle / 2;
+          const many = prizes.length > 8;
+          const radius = many ? 168 : 155;
+          const boxWidth = many ? 54 : 64;
+          const fontSize = many ? 7 : 8.5;
+          const iconSize = many ? 'text-sm' : 'text-lg';
           return (
             <div
               key={prize.label}
-              className="absolute left-1/2 top-1/2 flex w-[64px] flex-col items-center text-center"
+              className={`absolute left-1/2 top-1/2 flex flex-col items-center text-center`}
               style={{
-                transform: `rotate(${angle}deg) translateY(-155px) rotate(${-angle}deg) translateX(-50%)`,
+                width: boxWidth,
+                transform: `rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg) translateX(-50%)`,
               }}
             >
-              <span className="text-lg leading-none">{prize.icon}</span>
-              <span className="mt-1 text-[8.5px] font-bold leading-[1.15] text-white">
+              <span className={`${iconSize} leading-none`}>{prize.icon}</span>
+              <span className="mt-1 font-bold text-white" style={{ fontSize, lineHeight: 1.1 }}>
                 {prize.label}
               </span>
             </div>

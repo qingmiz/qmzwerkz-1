@@ -4,14 +4,20 @@ import { createAdminClient } from '@/lib/supabase-admin';
 // Default prizes used only if the wheel_prizes table doesn't exist yet or is empty -
 // keeps the wheel working before the admin has configured anything.
 const FALLBACK_PRIZES = [
-  { label: 'FREE Head', icon: '🆓', description: 'One free premade or custom head.' },
-  { label: '$5 Store Credit', icon: '💵', description: '$5 credit toward any purchase in the shop.' },
-  { label: '10% OFF', icon: '🏷️', description: 'Discount code for a future purchase.' },
-  { label: 'Random Tattoo', icon: '🖋️', description: 'One random tattoo from the collection.' },
-  { label: 'FREE Clothing', icon: '👕', description: 'One free clothing item or clothing pack.' },
-  { label: 'Premium Skin', icon: '⭐', description: 'A premium premade skin.' },
-  { label: 'Weapon Pack', icon: '🔫', description: 'One custom weapon pack.' },
-  { label: 'JACKPOT', icon: '🎉', description: 'The grand prize.' },
+  { label: '$5 OFF', icon: '🎉', description: 'Discount code for a future purchase.' },
+  { label: '$10 OFF', icon: '💸', description: 'Discount code for a future purchase.' },
+  { label: '$10 Shop Credit', icon: '💰', description: '$10 credit toward any purchase in the shop.' },
+  { label: 'Mystery Freebie', icon: '🎁', description: 'A surprise free item.' },
+  { label: 'FREE Premade Tattoo', icon: '✨', description: 'One free premade tattoo.' },
+  { label: 'FREE $10 Membership Access', icon: '💎', description: '$10 worth of membership access, free.' },
+  { label: 'FREE Premade Face', icon: '🎭', description: 'One free premade face.' },
+  { label: 'FREE Add-On', icon: '➕', description: 'Free add-on - tattoo, makeup, etc.' },
+  { label: '15% OFF', icon: '🛍️', description: 'Discount code for a future purchase.' },
+  { label: 'Pink Slip (FREE Custom)', icon: '🎟️', description: 'One free custom order.' },
+  { label: 'FREE Sleeve Tattoo Add-On', icon: '🖤', description: 'One free sleeve tattoo add-on.' },
+  { label: 'FREE Face Edit', icon: '🎨', description: 'One free face edit.' },
+  { label: 'BOGO 50% OFF Premades', icon: '🎊', description: 'Buy one premade, get one 50% off.' },
+  { label: '$20 Shop Credit (Rare)', icon: '💵', description: '$20 credit toward any purchase in the shop.' },
 ];
 
 export async function GET() {

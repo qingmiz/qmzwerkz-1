@@ -5,14 +5,20 @@ import { notifyDiscordWinner } from '@/lib/discord-notify';
 import { sendClaimEmail } from '@/lib/email';
 
 const FALLBACK_PRIZES = [
-  { label: 'FREE Head', weight: 10 },
-  { label: '$5 Store Credit', weight: 10 },
-  { label: '10% OFF', weight: 10 },
-  { label: 'Random Tattoo', weight: 10 },
-  { label: 'FREE Clothing', weight: 10 },
-  { label: 'Premium Skin', weight: 10 },
-  { label: 'Weapon Pack', weight: 10 },
-  { label: 'JACKPOT', weight: 5 },
+  { label: '$5 OFF', weight: 15 },
+  { label: '$10 OFF', weight: 10 },
+  { label: '$10 Shop Credit', weight: 10 },
+  { label: 'Mystery Freebie', weight: 8 },
+  { label: 'FREE Premade Tattoo', weight: 6 },
+  { label: 'FREE $10 Membership Access', weight: 5 },
+  { label: 'FREE Premade Face', weight: 5 },
+  { label: 'FREE Add-On', weight: 8 },
+  { label: '15% OFF', weight: 10 },
+  { label: 'Pink Slip (FREE Custom)', weight: 2 },
+  { label: 'FREE Sleeve Tattoo Add-On', weight: 5 },
+  { label: 'FREE Face Edit', weight: 6 },
+  { label: 'BOGO 50% OFF Premades', weight: 6 },
+  { label: '$20 Shop Credit (Rare)', weight: 3 },
 ];
 
 function generateClaimCode() {
