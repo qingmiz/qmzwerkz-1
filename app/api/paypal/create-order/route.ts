@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { createPayPalOrder } from '@/lib/paypal';
-import { validatePromoCode } from '@/lib/promo';
+import { validatePromoCode, applyPromoDiscount } from '@/lib/promo';
 
 export async function POST(request: Request) {
   try {
@@ -40,7 +40,10 @@ export async function POST(request: Request) {
       const result = await validatePromoCode(promoCode);
       if (result.valid) {
         validPromoCode = result.code!;
-        total = total * (1 - result.discountPercent! / 100);
+        total = applyPromoDiscount(total, {
+          discountPercent: result.discountPercent ?? null,
+          discountAmount: result.discountAmount ?? null,
+        });
       }
     }
 

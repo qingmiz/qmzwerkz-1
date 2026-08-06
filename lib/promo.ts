@@ -22,7 +22,23 @@ export async function validatePromoCode(code: string) {
     return { valid: false, error: 'This promo code has reached its usage limit.' };
   }
 
-  return { valid: true, discountPercent: promo.discount_percent as number, code: promo.code as string };
+  return {
+    valid: true,
+    discountPercent: promo.discount_percent as number | null,
+    discountAmount: promo.discount_amount as number | null,
+    code: promo.code as string,
+  };
+}
+
+// Applies a validated promo (percent OR flat amount) to a subtotal, floored at 0.
+export function applyPromoDiscount(
+  subtotal: number,
+  promo: { discountPercent: number | null; discountAmount: number | null }
+) {
+  let discount = 0;
+  if (promo.discountPercent) discount = subtotal * (promo.discountPercent / 100);
+  else if (promo.discountAmount) discount = promo.discountAmount;
+  return Math.max(0, subtotal - Math.min(discount, subtotal));
 }
 
 export async function incrementPromoUsage(code: string) {

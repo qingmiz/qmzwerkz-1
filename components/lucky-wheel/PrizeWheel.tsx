@@ -124,13 +124,13 @@ export default function PrizeWheel({ prizes, spinning, targetIndex, onSpinEnd }:
 
       {/* Center hub with logo */}
       <div
-        className="absolute z-10 flex h-20 w-20 items-center justify-center rounded-full border-2 border-pink-500 bg-black"
-        style={{ boxShadow: '0 0 20px rgba(236,72,153,0.8)' }}
+        className="absolute z-10 flex h-24 w-24 items-center justify-center rounded-full border-[3px] border-pink-500 bg-black sm:h-28 sm:w-28"
+        style={{ boxShadow: '0 0 8px rgba(0,0,0,0.9), 0 0 30px rgba(236,72,153,0.9), inset 0 0 12px rgba(0,0,0,0.6)' }}
       >
         <img
           src="/logos/qmz-icon.png"
           alt="QMZ"
-          className="h-14 w-14 object-contain"
+          className="h-[76px] w-[76px] object-contain sm:h-[92px] sm:w-[92px]"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = 'none';
           }}

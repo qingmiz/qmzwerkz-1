@@ -5,20 +5,20 @@ import { notifyDiscordWinner } from '@/lib/discord-notify';
 import { sendClaimEmail } from '@/lib/email';
 
 const FALLBACK_PRIZES = [
-  { label: '$5 OFF', weight: 15 },
-  { label: '$10 OFF', weight: 10 },
-  { label: '$10 Shop Credit', weight: 10 },
-  { label: 'Mystery Freebie', weight: 8 },
-  { label: 'FREE Premade Tattoo', weight: 6 },
-  { label: 'FREE $10 Membership Access', weight: 5 },
-  { label: 'FREE Premade Face', weight: 5 },
-  { label: 'FREE Add-On', weight: 8 },
-  { label: '15% OFF', weight: 10 },
-  { label: 'Pink Slip (FREE Custom)', weight: 2 },
-  { label: 'FREE Sleeve Tattoo Add-On', weight: 5 },
-  { label: 'FREE Face Edit', weight: 6 },
-  { label: 'BOGO 50% OFF Premades', weight: 6 },
-  { label: '$20 Shop Credit (Rare)', weight: 3 },
+  { label: '$5 OFF', weight: 15, auto_discount_amount: 5, auto_discount_percent: null },
+  { label: '$10 OFF', weight: 10, auto_discount_amount: 10, auto_discount_percent: null },
+  { label: '$10 Shop Credit', weight: 10, auto_discount_amount: 10, auto_discount_percent: null },
+  { label: 'Mystery Freebie', weight: 8, auto_discount_amount: null, auto_discount_percent: null },
+  { label: 'FREE Premade Tattoo', weight: 6, auto_discount_amount: null, auto_discount_percent: null },
+  { label: 'FREE $10 Membership Access', weight: 5, auto_discount_amount: null, auto_discount_percent: null },
+  { label: 'FREE Premade Face', weight: 5, auto_discount_amount: null, auto_discount_percent: null },
+  { label: 'FREE Add-On', weight: 8, auto_discount_amount: null, auto_discount_percent: null },
+  { label: '15% OFF', weight: 10, auto_discount_amount: null, auto_discount_percent: 15 },
+  { label: 'Pink Slip (FREE Custom)', weight: 2, auto_discount_amount: null, auto_discount_percent: null },
+  { label: 'FREE Sleeve Tattoo Add-On', weight: 5, auto_discount_amount: null, auto_discount_percent: null },
+  { label: 'FREE Face Edit', weight: 6, auto_discount_amount: null, auto_discount_percent: null },
+  { label: 'BOGO 50% OFF Premades', weight: 6, auto_discount_amount: null, auto_discount_percent: null },
+  { label: '$20 Shop Credit (Rare)', weight: 3, auto_discount_amount: 20, auto_discount_percent: null },
 ];
 
 function generateClaimCode() {
@@ -87,11 +87,12 @@ export async function POST(request: Request) {
   // 5. Select the prize on the server.
   const { data: dbPrizes } = await admin
     .from('wheel_prizes')
-    .select('label, weight')
+    .select('label, weight, auto_discount_percent, auto_discount_amount')
     .eq('active', true);
 
   const pool = dbPrizes && dbPrizes.length > 0 ? dbPrizes : FALLBACK_PRIZES;
-  const prize = pickWeighted(pool).label;
+  const wonPrize = pickWeighted(pool);
+  const prize = wonPrize.label;
 
   // 6. Generate a unique claim code (retry on the astronomically unlikely collision).
   let claimCode = generateClaimCode();
@@ -122,6 +123,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
+  // If this prize is a discount type (flat $ or %), the claim code doubles as
+  // a real, single-use promo code usable immediately at checkout - no staff
+  // involvement needed. Non-monetary prizes (free items/services) still go
+  // through the Discord ticket flow, since those need manual fulfillment.
+  const autoDiscountPercent = (wonPrize as any).auto_discount_percent ?? null;
+  const autoDiscountAmount = (wonPrize as any).auto_discount_amount ?? null;
+  const autoApplied = !!(autoDiscountPercent || autoDiscountAmount);
+
+  if (autoApplied) {
+    await admin.from('promo_codes').insert({
+      code: claimCode,
+      discount_percent: autoDiscountPercent,
+      discount_amount: autoDiscountAmount,
+      max_uses: 1,
+      active: true,
+    });
+  }
+
   // 9. Notify the Discord winners channel (no-ops if not configured).
   const origin = new URL(request.url).origin;
   await notifyDiscordWinner({
@@ -136,5 +155,5 @@ export async function POST(request: Request) {
   }
 
   // 10. Return the server-determined result.
-  return NextResponse.json({ prize, claimCode, nextSpinAt: nextSpinAt.toISOString() });
+  return NextResponse.json({ prize, claimCode, nextSpinAt: nextSpinAt.toISOString(), autoApplied });
 }

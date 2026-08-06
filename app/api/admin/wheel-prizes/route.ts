@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   const { admin, error } = await requireAdmin(request);
   if (error || !admin) return NextResponse.json({ error }, { status: 403 });
 
-  const { label, icon, description, weight, sortOrder } = await request.json();
+  const { label, icon, description, weight, sortOrder, autoDiscountPercent, autoDiscountAmount } = await request.json();
 
   if (!label || !weight) {
     return NextResponse.json({ error: 'label and weight are required.' }, { status: 400 });
@@ -31,6 +31,8 @@ export async function POST(request: Request) {
     weight,
     sort_order: sortOrder ?? 0,
     active: true,
+    auto_discount_percent: autoDiscountPercent || null,
+    auto_discount_amount: autoDiscountAmount || null,
   });
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });

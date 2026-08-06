@@ -58,10 +58,10 @@ export default function TermsPage() {
           <section>
             <h2 className="mb-2 text-lg font-bold text-white">6. Refunds</h2>
             <p>
-              Due to the instant, digital nature of our products, all sales are generally final
-              once a file has been downloaded. If you experience an issue with a purchase -
-              wrong file, corrupted download, or a product not working as described - open a
-              support ticket on our Discord server and we'll work with you to resolve it.
+              All sales are final once payment is completed. Due to the instant, digital nature
+              of our products, we do not offer refunds. If you experience a genuine technical
+              issue - wrong file or a corrupted download - open a support ticket on our Discord
+              server and we'll help resolve it, but this does not include refunds or chargebacks.
             </p>
           </section>
 

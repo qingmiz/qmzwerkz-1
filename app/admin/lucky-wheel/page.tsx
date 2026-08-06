@@ -12,6 +12,8 @@ interface Prize {
   weight: number;
   active: boolean;
   sort_order: number;
+  auto_discount_percent: number | null;
+  auto_discount_amount: number | null;
 }
 
 interface Spin {
@@ -97,6 +99,22 @@ export default function AdminLuckyWheelPage() {
     });
   };
 
+  const updateAutoDiscount = async (p: Prize, field: 'auto_discount_percent' | 'auto_discount_amount', value: string) => {
+    const num = value === '' ? null : parseFloat(value);
+    // Setting one clears the other - a prize is either % off or $ off, not both.
+    const updates: Record<string, unknown> =
+      field === 'auto_discount_percent'
+        ? { auto_discount_percent: num, auto_discount_amount: num ? null : p.auto_discount_amount }
+        : { auto_discount_amount: num, auto_discount_percent: num ? null : p.auto_discount_percent };
+
+    setPrizes((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...updates } as Prize : x)));
+    await adminFetch('/api/admin/wheel-prizes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: p.id, ...updates }),
+    });
+  };
+
   const remove = async (id: string) => {
     if (!confirm('Delete this prize?')) return;
     setPrizes((prev) => prev.filter((p) => p.id !== id));
@@ -162,6 +180,7 @@ export default function AdminLuckyWheelPage() {
             <tr style={{ background: '#1d1d1d' }}>
               <th style={th}>Prize</th>
               <th style={th}>Weight (odds)</th>
+              <th style={th}>Auto-Discount (% or $)</th>
               <th style={th}>Status</th>
               <th style={th}></th>
             </tr>
@@ -178,6 +197,33 @@ export default function AdminLuckyWheelPage() {
                     onChange={(e) => updateWeight(p, parseInt(e.target.value, 10) || 1)}
                     style={{ ...input, width: 70 }}
                   />
+                </td>
+                <td style={td}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="%"
+                      value={p.auto_discount_percent ?? ''}
+                      onChange={(e) => updateAutoDiscount(p, 'auto_discount_percent', e.target.value)}
+                      style={{ ...input, width: 55 }}
+                    />
+                    <span style={{ color: '#555', fontSize: 12 }}>or</span>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="$"
+                      value={p.auto_discount_amount ?? ''}
+                      onChange={(e) => updateAutoDiscount(p, 'auto_discount_amount', e.target.value)}
+                      style={{ ...input, width: 55 }}
+                    />
+                  </div>
+                  {(p.auto_discount_percent || p.auto_discount_amount) ? (
+                    <div style={{ fontSize: 11, color: '#10b981', marginTop: 4 }}>Auto-applies at checkout</div>
+                  ) : (
+                    <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Manual (Discord ticket)</div>
+                  )}
                 </td>
                 <td style={td}>
                   <button onClick={() => toggleActive(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: p.active ? '#10b981' : '#666', fontWeight: 700 }}>

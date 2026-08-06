@@ -22,7 +22,7 @@ export default function LuckyWheelPage() {
   const [eligible, setEligible] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
-  const [result, setResult] = useState<{ prize: string; claimCode: string } | null>(null);
+  const [result, setResult] = useState<{ prize: string; claimCode: string; autoApplied: boolean } | null>(null);
   const [nextSpinAt, setNextSpinAt] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState('00:00:00');
   const [error, setError] = useState('');
@@ -97,7 +97,7 @@ export default function LuckyWheelPage() {
 
       const index = prizes.findIndex((p) => p.label === data.prize);
       setTargetIndex(index >= 0 ? index : 0);
-      setResult({ prize: data.prize, claimCode: data.claimCode });
+      setResult({ prize: data.prize, claimCode: data.claimCode, autoApplied: !!data.autoApplied });
       setNextSpinAt(new Date(data.nextSpinAt));
     } catch {
       setSpinning(false);
@@ -149,18 +149,37 @@ export default function LuckyWheelPage() {
               {result.claimCode}
             </p>
 
-            <a
-              href="https://discord.com/channels/1458550712119070925/1458550715130581238"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-5 block rounded-xl bg-[#5865F2] py-3 font-bold text-white hover:brightness-110"
-            >
-              Claim Prize
-            </a>
+            {result.autoApplied ? (
+              <>
+                <div className="mt-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-400">
+                  ✓ Ready to use - enter this code at checkout
+                </div>
+                <Link
+                  href="/shop"
+                  className="mt-5 block rounded-xl bg-pink-500 py-3 font-bold text-white hover:bg-pink-600"
+                >
+                  Shop Now
+                </Link>
+                <p className="mt-4 text-xs text-zinc-500">
+                  This code is single-use and applies automatically in the Promo Code field at checkout.
+                </p>
+              </>
+            ) : (
+              <>
+                <a
+                  href="https://discord.com/channels/1458550712119070925/1458550715130581238"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 block rounded-xl bg-[#5865F2] py-3 font-bold text-white hover:brightness-110"
+                >
+                  Claim Prize
+                </a>
 
-            <p className="mt-4 text-xs text-zinc-500">
-              Open a support ticket and paste your claim code to redeem it.
-            </p>
+                <p className="mt-4 text-xs text-zinc-500">
+                  Open a support ticket and paste your claim code to redeem it.
+                </p>
+              </>
+            )}
           </>
         ) : eligible ? (
           <>

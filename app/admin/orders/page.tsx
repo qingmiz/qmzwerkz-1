@@ -14,7 +14,7 @@ interface Order {
   created_at: string;
 }
 
-const STATUS_OPTIONS = ['pending', 'completed', 'declined', 'refunded'];
+const STATUS_OPTIONS = ['pending', 'completed', 'declined'];
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);

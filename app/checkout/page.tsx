@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const paypalContainerRef = React.useRef<HTMLDivElement>(null);
 
   const [promoInput, setPromoInput] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountPercent: number } | null>(null);
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountPercent: number | null; discountAmount: number | null } | null>(null);
   const [promoStatus, setPromoStatus] = useState('');
   const [checkingPromo, setCheckingPromo] = useState(false);
   const [cfxUsername, setCfxUsername] = useState('');
@@ -123,7 +123,11 @@ export default function CheckoutPage() {
   }, [method, paypalConfigured, cart, paidItems, appliedPromo, cfxUsername]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-  const discountAmount = appliedPromo ? subtotal * (appliedPromo.discountPercent / 100) : 0;
+  const discountAmount = appliedPromo
+    ? appliedPromo.discountPercent
+      ? subtotal * (appliedPromo.discountPercent / 100)
+      : Math.min(appliedPromo.discountAmount || 0, subtotal)
+    : 0;
   const total = subtotal - discountAmount;
 
   const applyPromo = async () => {
@@ -143,7 +147,7 @@ export default function CheckoutPage() {
         setAppliedPromo(null);
         setPromoStatus(data.error || 'Invalid code.');
       } else {
-        setAppliedPromo({ code: data.code, discountPercent: data.discountPercent });
+        setAppliedPromo({ code: data.code, discountPercent: data.discountPercent, discountAmount: data.discountAmount });
         setPromoStatus('');
       }
     } catch {
@@ -407,7 +411,7 @@ export default function CheckoutPage() {
           {appliedPromo ? (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(16,185,129,0.08)', border: '1px solid #10b981', borderRadius: 8, padding: '10px 14px' }}>
               <span style={{ fontSize: 13, color: '#10b981', fontWeight: 700 }}>
-                🏷️ {appliedPromo.code} applied (-{appliedPromo.discountPercent}%)
+                🏷️ {appliedPromo.code} applied (-{appliedPromo.discountPercent ? `${appliedPromo.discountPercent}%` : `$${appliedPromo.discountAmount}`})
               </span>
               <button
                 onClick={() => { setAppliedPromo(null); setPromoInput(''); }}
